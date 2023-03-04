@@ -9,7 +9,7 @@ public class AesKeyScheduleTests
     [ClassData(typeof(InvalidLenghtKeys))]
     public void TestConstructor_ShouldThrow_WhenGivenIncorrectKeyLenght(byte[] key)
     {
-        Assert.Throws<InvalidKeyLenghtException>(() => new AesKeySchedule(key, 10));
+        Assert.Throws<InvalidKeyLenghtException>(() => new AesKeySchedule(key));
     }
 
     [Theory]
@@ -17,7 +17,16 @@ public class AesKeyScheduleTests
     public void TestAesKeySchedule_ShouldGenerateCorrectKeys_WhenGiven128BitKey(byte[] key, byte[] lastExpandedKey)
     {
         const int lastRoundNumber = 10;
-        var aesKeySchedule = new AesKeySchedule(key, lastRoundNumber);
+        var aesKeySchedule = new AesKeySchedule(key);
+        Assert.Equal(lastExpandedKey, aesKeySchedule.GetKey(lastRoundNumber));
+    }
+    
+    [Theory]
+    [ClassData(typeof(Correct192BitKeys))]
+    public void TestAesKeySchedule_ShouldGenerateCorrectKeys_WhenGiven192BitKey(byte[] key, byte[] lastExpandedKey)
+    {
+        const int lastRoundNumber = 12;
+        var aesKeySchedule = new AesKeySchedule(key);
         Assert.Equal(lastExpandedKey, aesKeySchedule.GetKey(lastRoundNumber));
     }
 }

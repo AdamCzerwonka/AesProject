@@ -4,26 +4,73 @@ namespace AesProject.Core;
 
 public class AesKeySchedule
 {
-    public AesKeySchedule(byte[] key, int rounds)
+    public AesKeySchedule(byte[] key)
     {
-        if (key.Length != 16)
+        if (key.Length == 16)
+        {
+            _keys.Add(0, key);
+            for (var i = 1; i <= 10; i++)
+            {
+                key = Generate128NextKey(key, i);
+                _keys.Add(i, key);
+            }
+        }
+        else if (key.Length == 24)
+        {
+            var test = Generate192NextKey(key);
+            for (var i = 0; i < 13; i++)
+            {
+                var startIdx = i * 16;
+                var slice = test[startIdx..(startIdx + 16)];
+                _keys.Add(i, slice);
+            }
+        }
+        else if (key.Length == 32)
+        {
+            // 256 Key Exp
+        }
+        else
         {
             throw new InvalidKeyLenghtException(16, key.Length);
         }
-        
-        for (var i = 1; i <= rounds; i++)
-        {
-            key = GenerateNextKey(key,i);
-            _keys.Add(key);
-        }    
     }
 
-    private readonly List<byte[]> _keys = new();
+    private readonly Dictionary<int, byte[]> _keys = new();
 
     public byte[] GetKey(int roundNumber)
-        => _keys[roundNumber - 1];
+        => _keys[roundNumber];
 
-    private byte[] GenerateNextKey(byte[] key, int round)
+    private byte[] Generate192NextKey(byte[] key)
+    {
+        var expandedKey = new byte[208];
+        key.CopyTo(expandedKey, 0);
+        var byteCount = 24;
+        var round = 0;
+        while (byteCount < 208)
+        {
+            var xorBytes = expandedKey[(byteCount - 4)..byteCount];
+            if (byteCount % 24 == 0)
+            {
+                xorBytes = RotWord(xorBytes);
+                for (var i = 0; i < 4; i++)
+                {
+                    xorBytes[i] = SBox.Get(xorBytes[i]);
+                }
+
+                xorBytes[0] ^= _rcon[round++];
+            }
+
+            for (var j = 0; j < 4; j++)
+            {
+                expandedKey[byteCount] = (byte)(expandedKey[byteCount - 24] ^ xorBytes[j]);
+                byteCount++;
+            }
+        }
+
+        return expandedKey;
+    }
+
+    private byte[] Generate128NextKey(byte[] key, int round)
     {
         var nextKey = new byte[16];
         var w3 = key[12..];

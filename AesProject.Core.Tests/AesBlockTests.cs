@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text;
+﻿using System.Text;
 using AesProject.Core.Exceptions;
 
 namespace AesProject.Core.Tests;

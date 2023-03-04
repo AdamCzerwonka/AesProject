@@ -6,6 +6,7 @@ public class AesBlock
 {
     private readonly byte[,] _stateArray;
     private readonly AesKeySchedule _aesKeySchedule;
+    private readonly int _roundsNumber;
     
     public AesBlock(byte[] input, byte[] key)
     {
@@ -13,15 +14,23 @@ public class AesBlock
         {
             throw new InvalidBlockSizeException(input.Length);
         }
+
+        _roundsNumber = key.Length switch
+        {
+            16 => 10,
+            24 => 12,
+            32 => 14,
+            _ => throw new ArgumentException("Key size not good")
+        };
         
-        _aesKeySchedule = new AesKeySchedule(key, 10);
+        _aesKeySchedule = new AesKeySchedule(key);
         _stateArray = ConvertToStateArray(input);
-        AddRoundKey(key);
+        AddRoundKey(_aesKeySchedule.GetKey(0));
     }
 
     public byte[] Encrypt()
     {
-        for (var i = 1; i < 10; i++)
+        for (var i = 1; i < _roundsNumber; i++)
         {
             SubBytes();
             ShiftRows();
