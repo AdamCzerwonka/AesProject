@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AesProject.Core", "AesProject.Core\AesProject.Core.csproj", "{1C45B8C7-E4FB-4E76-B360-81A3C893A645}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AesProject.Console", "AesProject.Console\AesProject.Console.csproj", "{B6776F01-D65C-4112-BC18-3B5FB901F744}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AesProject.Desktop", "AesProject.Desktop\AesProject.Desktop.csproj", "{5EEBE844-2EB3-4D0F-A875-6660D0F47BAB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C45B8C7-E4FB-4E76-B360-81A3C893A645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C45B8C7-E4FB-4E76-B360-81A3C893A645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C45B8C7-E4FB-4E76-B360-81A3C893A645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C45B8C7-E4FB-4E76-B360-81A3C893A645}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6776F01-D65C-4112-BC18-3B5FB901F744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6776F01-D65C-4112-BC18-3B5FB901F744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6776F01-D65C-4112-BC18-3B5FB901F744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6776F01-D65C-4112-BC18-3B5FB901F744}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EEBE844-2EB3-4D0F-A875-6660D0F47BAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EEBE844-2EB3-4D0F-A875-6660D0F47BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EEBE844-2EB3-4D0F-A875-6660D0F47BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EEBE844-2EB3-4D0F-A875-6660D0F47BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
