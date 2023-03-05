@@ -1,8 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Text;
 using AesProject.Core;
 
 Console.WriteLine("Hello, World!");
 
-var key = new byte[24];
-var keySchedule = new AesKeySchedule(key);
+var key = "Thats my Kung Fuaaaaaaaa";

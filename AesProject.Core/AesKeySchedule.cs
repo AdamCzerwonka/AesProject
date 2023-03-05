@@ -9,7 +9,7 @@ public class AesKeySchedule
         if (key.Length == 16)
         {
             _keys.Add(0, key);
-            for (var i = 1; i <= 10; i++)
+            for (var i = 1; i < 11; i++)
             {
                 key = Generate128NextKey(key, i);
                 _keys.Add(i, key);
@@ -27,7 +27,13 @@ public class AesKeySchedule
         }
         else if (key.Length == 32)
         {
-            // 256 Key Exp
+            var test = Generate256Key(key);
+            for (var i = 0; i < 15; i++)
+            {
+                var startIdx = i * 16;
+                var slice = test[startIdx..(startIdx + 16)];
+                _keys.Add(i, slice);
+            }
         }
         else
         {
@@ -39,6 +45,45 @@ public class AesKeySchedule
 
     public byte[] GetKey(int roundNumber)
         => _keys[roundNumber];
+
+    private byte[] Generate256Key(byte[] key)
+    {
+        var expandedKey = new byte[240];
+        key.CopyTo(expandedKey, 0);
+        var round = 0;
+        var byteCount = 32;
+        while (byteCount < 240)
+        {
+            var count = byteCount - 4;
+            var temp = expandedKey[count..byteCount];
+            if (byteCount % 32 == 0)
+            {
+                temp = RotWord(temp);
+                for (var i = 0; i < 4; i++)
+                {
+                    temp[i] = SBox.Get(temp[i]);
+                }
+
+                temp[0] ^= _rcon[round++];
+            }
+
+            if (byteCount % 32 == 16)
+            {
+                for (var i = 0; i < 4; i++)
+                {
+                    temp[i] = SBox.Get(temp[i]);
+                }
+            }
+
+            for (var i = 0; i < 4; i++)
+            {
+                expandedKey[byteCount] = (byte)(temp[i] ^ expandedKey[byteCount - 32]);
+                byteCount++;
+            }
+        }
+
+        return expandedKey;
+    }
 
     private byte[] Generate192NextKey(byte[] key)
     {

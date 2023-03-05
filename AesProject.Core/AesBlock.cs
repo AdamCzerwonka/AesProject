@@ -25,11 +25,11 @@ public class AesBlock
         
         _aesKeySchedule = new AesKeySchedule(key);
         _stateArray = ConvertToStateArray(input);
-        AddRoundKey(_aesKeySchedule.GetKey(0));
     }
 
     public byte[] Encrypt()
     {
+        AddRoundKey(_aesKeySchedule.GetKey(0));
         for (var i = 1; i < _roundsNumber; i++)
         {
             SubBytes();
@@ -39,7 +39,7 @@ public class AesBlock
         }
         SubBytes();
         ShiftRows();
-        AddRoundKey(_aesKeySchedule.GetKey(10));
+        AddRoundKey(_aesKeySchedule.GetKey(_roundsNumber));
 
         return FlattenStateArray();
     }

@@ -29,4 +29,13 @@ public class AesKeyScheduleTests
         var aesKeySchedule = new AesKeySchedule(key);
         Assert.Equal(lastExpandedKey, aesKeySchedule.GetKey(lastRoundNumber));
     }
+    
+    [Theory]
+    [ClassData(typeof(Correct256BitKeys))]
+    public void TestAesKeySchedule_ShouldGenerateCorrectKeys_WhenGiven256BitKey(byte[] key, byte[] lastExpandedKey)
+    {
+        const int lastRoundNumber = 14;
+        var aesKeySchedule = new AesKeySchedule(key);
+        Assert.Equal(lastExpandedKey, aesKeySchedule.GetKey(lastRoundNumber));
+    }
 }
