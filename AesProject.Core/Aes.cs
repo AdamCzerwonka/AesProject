@@ -16,6 +16,7 @@ public class Aes
         BlockNumber = numberOfBlocks;
         _input = input;
         _key = key;
+        AddPadding();
         DivideIntoBlocks();
     }
 
@@ -45,47 +46,46 @@ public class Aes
         return stream.ToArray();
     }
 
+    private void AddPadding()
+    {
+        var stream = new MemoryStream(_input);
+        var size = _input.Length;
+        if (size % 16 == 0)
+        {
+            var buff = new byte[16];
+            for (var i = 0; i < 16; i++)
+            {
+                buff[i] = 16;
+            }
+
+            stream.Write(buff);
+        }
+        else
+        {
+            var toAdd = 16 - (size % 16);
+            var buff = new byte[toAdd];
+            for (var i = 0; i < toAdd; i++)
+            {
+                buff[i] = (byte)toAdd;
+            }
+            stream.Write(buff);
+        }
+
+        _input = stream.ToArray();
+    }
+
     private void DivideIntoBlocks()
     {
         for (var i = 0; i < BlockNumber; i++)
         {
             var startIdx = i * 16;
             var endIdx = startIdx + 16;
-            if (endIdx > _input.Length)
-            {
-                endIdx = _input.Length;
-            }
-
             var block = _input[startIdx..endIdx];
             Blocks.Add(block);
-        }
-
-        var lastBlock = Blocks.Last();
-        if (lastBlock.Length < 16)
-        {
-            var lastBlockSize = lastBlock.Length;
-            var paddedLastBlock = new byte[16];
-            lastBlock.CopyTo(paddedLastBlock, 0);
-            for (var i = lastBlockSize; i < 16; i++)
-            {
-                paddedLastBlock[i] = (byte)(16 - lastBlockSize);
-            }
-
-            Blocks[BlockNumber - 1] = paddedLastBlock;
-        }
-        else
-        {
-            var paddingBlock = new byte[16];
-            for (var i = 0; i < 16; i++)
-            {
-                paddingBlock[i] = 16;
-            }
-
-            Blocks.Add(paddingBlock);
         }
     }
 
     public int BlockNumber { get; set; }
-    private readonly byte[] _input;
+    private byte[] _input;
     public List<byte[]> Blocks { get; set; } = new();
 }
