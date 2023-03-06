@@ -48,7 +48,8 @@ public class Aes
 
     private void AddPadding()
     {
-        var stream = new MemoryStream(_input);
+        var stream = new MemoryStream();
+        stream.Write(_input);
         var size = _input.Length;
         if (size % 16 == 0)
         {
@@ -76,7 +77,7 @@ public class Aes
 
     private void DivideIntoBlocks()
     {
-        for (var i = 0; i < BlockNumber; i++)
+        for (var i = 0; i < _input.Length / 16; i++)
         {
             var startIdx = i * 16;
             var endIdx = startIdx + 16;
