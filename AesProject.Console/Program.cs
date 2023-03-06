@@ -5,10 +5,9 @@ using AesProject.Core;
 
 Console.WriteLine("Hello, World!");
 
-var text = Encoding.ASCII.GetBytes("Two One Nine Twoaaaaa");
-var key = Encoding.ASCII.GetBytes("Thats my Kung Fu");
-var aes = new Aes(text, key);
-var result = aes.Encrypt();
+var text = Encoding.ASCII.GetBytes("Two One Nine Twoada");
+var key = Encoding.ASCII.GetBytes("Thatas my Kung Fu");
+var result = Aes.Aes128Encrypt(text, key);
 
 var aes2 = new Aes(result, key);
 var org = aes2.Decrypt();

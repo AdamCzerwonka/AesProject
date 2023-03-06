@@ -38,4 +38,16 @@ public class AesTests
 
         Assert.Equal(expected, result);
     }
+
+    [Fact]
+    public void TestDecrypt_ShouldReturnInputBytes_WhenGivenEncypptedInput()
+    {
+        var testText = "TestText"u8.ToArray();
+        var testKey = "aaaaaaaaaaaaaaaa"u8.ToArray();
+
+        var encryptedText = Aes.Aes128Encrypt(testText, testKey);
+
+        var result = new Aes(encryptedText, testKey).Decrypt();
+        Assert.Equal(testText, result);
+    }
 }

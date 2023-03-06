@@ -1,3 +1,5 @@
+using AesProject.Core.Exceptions;
+
 namespace AesProject.Core;
 
 public class Aes
@@ -16,12 +18,12 @@ public class Aes
         BlockNumber = numberOfBlocks;
         _input = input;
         _key = key;
-        AddPadding();
-        DivideIntoBlocks();
     }
 
     public byte[] Encrypt()
     {
+        AddPadding();
+        DivideIntoBlocks();
         var stream = new MemoryStream();
         foreach (var t in Blocks)
         {
@@ -35,6 +37,7 @@ public class Aes
 
     public byte[] Decrypt()
     {
+        DivideIntoBlocks();
         var stream = new MemoryStream();
         foreach (var t in Blocks)
         {
@@ -43,7 +46,8 @@ public class Aes
             stream.Write(result);
         }
 
-        return stream.ToArray();
+
+        return RemovePadding(stream.ToArray());
     }
 
     private void AddPadding()
@@ -69,6 +73,7 @@ public class Aes
             {
                 buff[i] = (byte)toAdd;
             }
+
             stream.Write(buff);
         }
 
@@ -86,7 +91,24 @@ public class Aes
         }
     }
 
+    private byte[] RemovePadding(byte[] input)
+    {
+        var lastByte = input[^1];
+        return input[..^lastByte];
+    }
+
     public int BlockNumber { get; set; }
     private byte[] _input;
     public List<byte[]> Blocks { get; set; } = new();
+
+    public static byte[] Aes128Encrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 16)
+        {
+            throw new InvalidKeyLenghtException(16, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Encrypt();
+    }
 }
