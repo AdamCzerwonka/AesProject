@@ -4,8 +4,12 @@ namespace AesProject.Core;
 
 public class AesKeySchedule
 {
+    private readonly byte[] _encryptionKey;
+
     public AesKeySchedule(byte[] key)
     {
+        _encryptionKey = key;
+
         if (key.Length == 16)
         {
             _keys.Add(0, key);
@@ -17,7 +21,7 @@ public class AesKeySchedule
         }
         else if (key.Length == 24)
         {
-            var test = Generate192NextKey(key);
+            var test = Expand192BitKey();
             for (var i = 0; i < 13; i++)
             {
                 var startIdx = i * 16;
@@ -27,7 +31,7 @@ public class AesKeySchedule
         }
         else if (key.Length == 32)
         {
-            var test = Generate256Key(key);
+            var test = Expand256BitKey();
             for (var i = 0; i < 15; i++)
             {
                 var startIdx = i * 16;
@@ -41,15 +45,25 @@ public class AesKeySchedule
         }
     }
 
+
+    public int EncryptionRounds
+        => _encryptionKey.Length switch
+        {
+            16 => 10,
+            24 => 12,
+            32 => 14,
+            _ => throw new InvalidKeyLenghtException()
+        };
+
     private readonly Dictionary<int, byte[]> _keys = new();
 
     public byte[] GetKey(int roundNumber)
         => _keys[roundNumber];
 
-    private byte[] Generate256Key(byte[] key)
+    private byte[] Expand256BitKey()
     {
         var expandedKey = new byte[240];
-        key.CopyTo(expandedKey, 0);
+        _encryptionKey.CopyTo(expandedKey, 0);
         var round = 0;
         var byteCount = 32;
         while (byteCount < 240)
@@ -64,7 +78,7 @@ public class AesKeySchedule
                     temp[i] = SBox.Get(temp[i]);
                 }
 
-                temp[0] ^= _rcon[round++];
+                temp[0] ^= Rcon[round++];
             }
 
             if (byteCount % 32 == 16)
@@ -85,10 +99,10 @@ public class AesKeySchedule
         return expandedKey;
     }
 
-    private byte[] Generate192NextKey(byte[] key)
+    private byte[] Expand192BitKey()
     {
         var expandedKey = new byte[208];
-        key.CopyTo(expandedKey, 0);
+        _encryptionKey.CopyTo(expandedKey, 0);
         var byteCount = 24;
         var round = 0;
         while (byteCount < 208)
@@ -102,7 +116,7 @@ public class AesKeySchedule
                     xorBytes[i] = SBox.Get(xorBytes[i]);
                 }
 
-                xorBytes[0] ^= _rcon[round++];
+                xorBytes[0] ^= Rcon[round++];
             }
 
             for (var j = 0; j < 4; j++)
@@ -127,7 +141,7 @@ public class AesKeySchedule
             w3[i] = SBox.Get(w3[i]);
         }
 
-        w3[0] ^= _rcon[round - 1];
+        w3[0] ^= Rcon[round - 1];
 
         for (var i = 0; i < 4; i++)
         {
@@ -157,7 +171,7 @@ public class AesKeySchedule
         return word;
     }
 
-    private readonly byte[] _rcon =
+    private static readonly byte[] Rcon =
     {
         0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
     };
