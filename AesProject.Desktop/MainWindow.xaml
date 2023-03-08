@@ -6,7 +6,21 @@
         xmlns:local="clr-namespace:AesProject.Desktop"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    
+    <Window.DataContext>
+        <local:ViewModel></local:ViewModel>
+    </Window.DataContext>
+    
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBox Grid.Row="0" Name="Key" Text="{Binding Path=Key}" Background="DarkSeaGreen" Width="300px" Height="30px" FontSize="20px" Margin="10px"/>
+        <TextBox Grid.Row="1" Name="PublicText" Text="{Binding Path=PublicText}" Background="BlanchedAlmond" Width="300px" Height="30px" FontSize="20px" Margin="10px"/>
+        <Button Grid.Row="2" Name="Cypher" Command="{Binding CypherCommand}" Content="Cypher" Width="100px" Margin="10px"></Button>
+        <TextBox Grid.Row="3" Name="Encrypted" Text="{Binding Path=EncryptedInput}" Background="LightBlue" Width="600px" Height="100px" FontSize="20px" Margin="10px" TextWrapping="Wrap"/>
     </Grid>
 </Window>

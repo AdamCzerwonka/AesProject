@@ -2,12 +2,15 @@
 
 using System.Text;
 using AesProject.Core;
-using AesProject.Core.ArrayExtensions;
 
 Console.WriteLine("Hello, World!");
 
-var text = Encoding.Default.GetBytes("Two One Nine Twoada");
-var key = Encoding.Default.GetBytes("Thats my Kung Fu");
+
+var text = Encoding.ASCII.GetBytes("Two One Nine Two");
+var key = Encoding.ASCII.GetBytes("Thats my Kung Fu");
 var result = Aes.Aes128Encrypt(text, key);
 
-Console.WriteLine(result.GetBytesAsString());
+var aes2 = new Aes(result, key);
+var org = aes2.Decrypt();
+
+Console.WriteLine(Encoding.ASCII.GetString(org));
