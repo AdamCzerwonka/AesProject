@@ -6,7 +6,6 @@ using System.Text;
 using System.Windows;
 using AesProject.Core.Exceptions;
 using Microsoft.Win32;
-using AesProject.Core;
 using Aes = AesProject.Core.Aes;
 
 namespace AesProject.Desktop;
@@ -31,6 +30,19 @@ public class ViewModel : NotifyPropertyChanged
 
         Key = builder.ToString();
     }
+
+    private string? _algorithm = "AES128";
+
+    public string? Algorithm
+    {
+        get => _algorithm;
+        set
+        {
+            _algorithm = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     public ICommand GenerateKeyCommand { get; set; }
 
@@ -94,11 +106,19 @@ public class ViewModel : NotifyPropertyChanged
             return;
         }
 
+        Func<byte[], byte[], byte[]> encryptionFunc = Algorithm switch
+        {
+            "AES128" => Aes.Aes128Encrypt,
+            "AES192" => Aes.Aes192Encrypt,
+            "AES256" => Aes.Aes256Encrypt,
+            _ => throw new Exception("Failed")
+        };
+
         var keyBytes = Encoding.UTF8.GetBytes(Key);
         var inputBytes = Encoding.UTF8.GetBytes(PublicText);
         try
         {
-            var result = Aes.Aes128Encrypt(_buffer, keyBytes);
+            var result = encryptionFunc(inputBytes, keyBytes);
 
             var builder = new StringBuilder();
             foreach (var b in result)

@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:AesProject.Desktop"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1000">
+    <Window.Resources>
+        <local:AesValueConverter x:Key="AesConverter" />
+    </Window.Resources>
 
     <Window.DataContext>
         <local:ViewModel></local:ViewModel>
@@ -42,9 +45,24 @@
                      Width="300px" Height="30px"
                      FontSize="20px" />
             <StackPanel Orientation="Horizontal">
-               <RadioButton IsChecked="True">AES128</RadioButton> 
-               <RadioButton>AES192</RadioButton> 
-               <RadioButton>AES256</RadioButton> 
+                <RadioButton
+                    Content="AES128"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=AES128}" />
+                <RadioButton
+                    Content="AES192"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=AES192}" />
+                <RadioButton
+                    Content="AES256"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=AES256}" />
             </StackPanel>
             <Button
                 Command="{Binding GenerateKeyCommand}"
