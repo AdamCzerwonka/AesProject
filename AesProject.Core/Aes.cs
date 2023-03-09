@@ -111,4 +111,59 @@ public class Aes
         var aes = new Aes(data, key);
         return aes.Encrypt();
     }
+
+    public static byte[] Aes128Decrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 16)
+        {
+            throw new InvalidKeyLenghtException(16, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Decrypt();
+    }
+
+    public static byte[] Aes192Encrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 24)
+        {
+            throw new InvalidKeyLenghtException(24, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Encrypt();
+    }
+    
+    public static byte[] Aes192Decrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 24)
+        {
+            throw new InvalidKeyLenghtException(24, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Decrypt();
+    }
+    
+    public static byte[] Aes256Encrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 32)
+        {
+            throw new InvalidKeyLenghtException(32, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Encrypt();
+    }
+    
+    public static byte[] Aes256Decrypt(byte[] data, byte[] key)
+    {
+        if (key.Length != 32)
+        {
+            throw new InvalidKeyLenghtException(32, key.Length);
+        }
+
+        var aes = new Aes(data, key);
+        return aes.Decrypt();
+    }
 }

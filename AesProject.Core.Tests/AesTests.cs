@@ -50,4 +50,40 @@ public class AesTests
         var result = new Aes(encryptedText, testKey).Decrypt();
         Assert.Equal(testText, result);
     }
+
+    [Fact]
+    public void TestEncryptDecrypt128_ShouldReturnSameValueAsInput_WhenGivenEncryptedInput()
+    {
+        var testText = "Test Text"u8.ToArray();
+        var testKey = "aaaaaaaaaaaaaaaa"u8.ToArray();
+
+        var encryptedText = Aes.Aes128Encrypt(testText, testKey);
+        var result = Aes.Aes128Decrypt(encryptedText, testKey);
+        
+        Assert.Equal(testText, result);
+    }
+    
+    [Fact]
+    public void TestEncryptDecrypt192_ShouldReturnSameValueAsInput_WhenGivenEncryptedInput()
+    {
+        var testText = "Test Text"u8.ToArray();
+        var testKey = "aaaaaaaaaaaaaaaaaaaaaaaa"u8.ToArray();
+
+        var encryptedText = Aes.Aes192Encrypt(testText, testKey);
+        var result = Aes.Aes192Decrypt(encryptedText, testKey);
+        
+        Assert.Equal(testText, result);
+    }
+    
+    [Fact]
+    public void TestEncryptDecrypt256_ShouldReturnSameValueAsInput_WhenGivenEncryptedInput()
+    {
+        var testText = "Test Text"u8.ToArray();
+        var testKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"u8.ToArray();
+
+        var encryptedText = Aes.Aes256Encrypt(testText, testKey);
+        var result = Aes.Aes256Decrypt(encryptedText, testKey);
+        
+        Assert.Equal(testText, result);
+    }
 }
