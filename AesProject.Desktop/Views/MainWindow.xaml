@@ -1,9 +1,10 @@
-﻿<Window x:Class="AesProject.Desktop.MainWindow"
+﻿<Window x:Class="AesProject.Desktop.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AesProject.Desktop"
+        xmlns:viewModels="clr-namespace:AesProject.Desktop.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="1000">
     <Window.Resources>
@@ -11,7 +12,7 @@
     </Window.Resources>
 
     <Window.DataContext>
-        <local:ViewModel></local:ViewModel>
+        <viewModels:MainViewModel/>
     </Window.DataContext>
 
     <Grid>
@@ -50,19 +51,19 @@
                     IsChecked="{Binding
                     Path= Algorithm,
                     Converter={StaticResource AesConverter},
-                    ConverterParameter=AES128}" />
+                    ConverterParameter=Aes128}" />
                 <RadioButton
                     Content="AES192"
                     IsChecked="{Binding
                     Path= Algorithm,
                     Converter={StaticResource AesConverter},
-                    ConverterParameter=AES192}" />
+                    ConverterParameter=Aes192}" />
                 <RadioButton
                     Content="AES256"
                     IsChecked="{Binding
                     Path= Algorithm,
                     Converter={StaticResource AesConverter},
-                    ConverterParameter=AES256}" />
+                    ConverterParameter=Aes256}" />
             </StackPanel>
             <Button
                 Command="{Binding GenerateKeyCommand}"

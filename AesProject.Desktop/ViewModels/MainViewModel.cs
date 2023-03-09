@@ -5,14 +5,15 @@ using System.Windows.Input;
 using System.Text;
 using System.Windows;
 using AesProject.Core.Exceptions;
+using AesProject.Desktop.Models;
 using Microsoft.Win32;
 using Aes = AesProject.Core.Aes;
 
-namespace AesProject.Desktop;
+namespace AesProject.Desktop.ViewModels;
 
-public class ViewModel : NotifyPropertyChanged
+public class MainViewModel : NotifyPropertyChanged
 {
-    public ViewModel()
+    public MainViewModel()
     {
         CypherCommand = new RelayCommand(CypherText);
         LoadFromFileCommand = new RelayCommand(LoadFromFile);
@@ -21,7 +22,7 @@ public class ViewModel : NotifyPropertyChanged
 
     private void GenerateRandomKey(object _)
     {
-        var key = RandomNumberGenerator.GetBytes(8);
+        var key = RandomNumberGenerator.GetBytes((int)Algorithm / 2);
         var builder = new StringBuilder();
         foreach (var b in key)
         {
@@ -31,9 +32,9 @@ public class ViewModel : NotifyPropertyChanged
         Key = builder.ToString();
     }
 
-    private string? _algorithm = "AES128";
+    private AesAlgorithm _algorithm = AesAlgorithm.Aes128;
 
-    public string? Algorithm
+    public AesAlgorithm Algorithm
     {
         get => _algorithm;
         set
@@ -108,9 +109,9 @@ public class ViewModel : NotifyPropertyChanged
 
         Func<byte[], byte[], byte[]> encryptionFunc = Algorithm switch
         {
-            "AES128" => Aes.Aes128Encrypt,
-            "AES192" => Aes.Aes192Encrypt,
-            "AES256" => Aes.Aes256Encrypt,
+            AesAlgorithm.Aes128 => Aes.Aes128Encrypt,
+            AesAlgorithm.Aes192 => Aes.Aes192Encrypt,
+            AesAlgorithm.Aes256 => Aes.Aes256Encrypt,
             _ => throw new Exception("Failed")
         };
 
