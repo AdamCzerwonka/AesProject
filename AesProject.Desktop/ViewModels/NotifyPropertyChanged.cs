@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace AesProject.Desktop;
+namespace AesProject.Desktop.ViewModels;
 
 public class NotifyPropertyChanged : INotifyPropertyChanged
 {

@@ -1,0 +1,137 @@
+﻿<Window x:Class="AesProject.Desktop.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AesProject.Desktop"
+        xmlns:viewModels="clr-namespace:AesProject.Desktop.ViewModels"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="1110" ResizeMode="NoResize">
+    <Window.Resources>
+        <local:AesValueConverter x:Key="AesConverter" />
+    </Window.Resources>
+
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="150px" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Column 0-2 -->
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Margin="10px" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding ResetAllCommand}"
+                    Content="RESET ALL"
+                    Width="100px"
+                    Margin="5px" />
+                <Button
+                    Command="{Binding ResetBuffCommand}"
+                    Content="RESET BUFF"
+                    Width="100px"
+                    Margin="5px" />
+            </StackPanel>
+            <Label FontSize="16px">Enter key phrase here:</Label>
+            <TextBox Text="{Binding Key}"
+                     Background="BlanchedAlmond"
+                     Width="450px" Height="30px"
+                     FontSize="20px" />
+            <StackPanel Orientation="Horizontal" Margin="10px" HorizontalAlignment="Center">
+                <RadioButton
+                    Content="AES128"
+                    Padding="0 0 5px 0"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=Aes128}" />
+                <RadioButton
+                    Content="AES192"
+                    Padding="0 0 5px 0"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=Aes192}" />
+                <RadioButton
+                    Content="AES256"
+                    IsChecked="{Binding
+                    Path= Algorithm,
+                    Converter={StaticResource AesConverter},
+                    ConverterParameter=Aes256}" />
+            </StackPanel>
+            <Button
+                Command="{Binding GenerateKeyCommand}"
+                Content="Gen Key"
+                Width="100px"
+                Margin="5px" />
+        </StackPanel>
+
+        <!-- Column 0 -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="10px">
+            <Label FontSize="16px">Plain text:</Label>
+            <TextBox Text="{Binding PlainText}"
+                     Background="DarkSeaGreen"
+                     Width="450px" Height="300px"
+                     FontSize="20px"
+                     TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding LoadFromFileCommand}"
+                    Content="Load From File"
+                    Width="100px"
+                    Margin="10px" />
+                <Button
+                    Command="{Binding SaveFileCommand}"
+                    Content="Save File"
+                    Width="100px"
+                    Margin="10px" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Column 1 -->
+        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+            <Button
+                Command="{Binding CypherCommand}"
+                Content="Cypher ->"
+                Width="100px" Height="30px"
+                Margin="10px" />
+            <Button
+                Command="{Binding DecryptCommand}"
+                Content="&lt;- Decrypt"
+                Width="100px" Height="30px"
+                Margin="10px" />
+        </StackPanel>
+
+        <!-- Column 2 -->
+        <StackPanel Grid.Row="1" Grid.Column="2" Margin="10px">
+            <Label FontSize="16px">Encrypted text:</Label>
+            <TextBox
+                Text="{Binding EncryptedText}"
+                Background="LightBlue"
+                Width="450px" Height="300px"
+                FontSize="20px"
+                TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding LoadFromEncryptedFileCommand}"
+                    Content="Load From File"
+                    Width="100px"
+                    Margin="10px" />
+                <Button
+                    Command="{Binding SaveEncryptedFileCommand}"
+                    Content="Save File"
+                    Width="100px"
+                    Margin="10px" />
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</Window>
