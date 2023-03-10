@@ -6,54 +6,56 @@
         xmlns:local="clr-namespace:AesProject.Desktop"
         xmlns:viewModels="clr-namespace:AesProject.Desktop.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="1000">
+        Title="MainWindow" Height="600" Width="1110" ResizeMode="NoResize">
     <Window.Resources>
         <local:AesValueConverter x:Key="AesConverter" />
     </Window.Resources>
 
     <Window.DataContext>
-        <viewModels:MainViewModel/>
+        <viewModels:MainViewModel />
     </Window.DataContext>
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="150px" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <!-- Column 0 -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Margin="10px">
-            <Label>Enter plain text here:</Label>
-            <TextBox Text="{Binding PublicText}"
-                     Background="DarkSeaGreen"
-                     Width="300px" Height="30px"
-                     FontSize="20px" />
-            <Button
-                Command="{Binding LoadFromFileCommand}"
-                Content="Load From File"
-                Width="100px"
-                Margin="10px" />
-        </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="0" Margin="10px">
-            <Label>Enter key phrase here:</Label>
+
+        <!-- Column 0-2 -->
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Margin="10px" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding ResetAllCommand}"
+                    Content="RESET ALL"
+                    Width="100px"
+                    Margin="5px" />
+                <Button
+                    Command="{Binding ResetBuffCommand}"
+                    Content="RESET BUFF"
+                    Width="100px"
+                    Margin="5px" />
+            </StackPanel>
+            <Label FontSize="16px">Enter key phrase here:</Label>
             <TextBox Text="{Binding Key}"
                      Background="BlanchedAlmond"
-                     Width="300px" Height="30px"
+                     Width="450px" Height="30px"
                      FontSize="20px" />
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Margin="10px" HorizontalAlignment="Center">
                 <RadioButton
                     Content="AES128"
+                    Padding="0 0 5px 0"
                     IsChecked="{Binding
                     Path= Algorithm,
                     Converter={StaticResource AesConverter},
                     ConverterParameter=Aes128}" />
                 <RadioButton
                     Content="AES192"
+                    Padding="0 0 5px 0"
                     IsChecked="{Binding
                     Path= Algorithm,
                     Converter={StaticResource AesConverter},
@@ -69,31 +71,67 @@
                 Command="{Binding GenerateKeyCommand}"
                 Content="Gen Key"
                 Width="100px"
+                Margin="5px" />
+        </StackPanel>
+
+        <!-- Column 0 -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="10px">
+            <Label FontSize="16px">Plain text:</Label>
+            <TextBox Text="{Binding PlainText}"
+                     Background="DarkSeaGreen"
+                     Width="450px" Height="300px"
+                     FontSize="20px"
+                     TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding LoadFromFileCommand}"
+                    Content="Load From File"
+                    Width="100px"
+                    Margin="10px" />
+                <Button
+                    Command="{Binding SaveFileCommand}"
+                    Content="Save File"
+                    Width="100px"
+                    Margin="10px" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Column 1 -->
+        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+            <Button
+                Command="{Binding CypherCommand}"
+                Content="Cypher ->"
+                Width="100px" Height="30px"
+                Margin="10px" />
+            <Button
+                Command="{Binding DecryptCommand}"
+                Content="&lt;- Decrypt"
+                Width="100px" Height="30px"
                 Margin="10px" />
         </StackPanel>
-        <Button
-            Grid.Column="0" Grid.Row="2"
-            Command="{Binding CypherCommand}"
-            Content="Cypher"
-            Width="100px" Margin="10px" />
-        <TextBox Grid.Column="0" Grid.Row="3"
-                 Text="{Binding EncryptedInput}"
-                 Background="LightBlue"
-                 Width="300px" Height="100px"
-                 FontSize="15px"
-                 Margin="10px"
-                 TextWrapping="Wrap" />
-        <!-- Column 1 -->
-        <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Key}" Background="DarkSeaGreen" Width="300px"
-                 Height="30px"
-                 FontSize="20px" Margin="10px" />
-        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=PublicText}" Background="BlanchedAlmond"
-                 Width="300px" Height="30px" FontSize="20px" Margin="10px" />
-        <Button Grid.Column="1" Grid.Row="2" Command="{Binding CypherCommand}" Content="Cypher" Width="100px"
-                Margin="10px">
-        </Button>
-        <TextBox Grid.Column="1" Grid.Row="3" Name="Encrypted" Text="{Binding Path=EncryptedInput}"
-                 Background="LightBlue"
-                 Width="300px" Height="100px" FontSize="20px" Margin="10px" TextWrapping="Wrap" />
+
+        <!-- Column 2 -->
+        <StackPanel Grid.Row="1" Grid.Column="2" Margin="10px">
+            <Label FontSize="16px">Encrypted text:</Label>
+            <TextBox
+                Text="{Binding EncryptedText}"
+                Background="LightBlue"
+                Width="450px" Height="300px"
+                FontSize="20px"
+                TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button
+                    Command="{Binding LoadFromEncryptedFileCommand}"
+                    Content="Load From File"
+                    Width="100px"
+                    Margin="10px" />
+                <Button
+                    Command="{Binding SaveEncryptedFileCommand}"
+                    Content="Save File"
+                    Width="100px"
+                    Margin="10px" />
+            </StackPanel>
+        </StackPanel>
+
     </Grid>
 </Window>

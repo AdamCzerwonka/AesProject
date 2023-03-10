@@ -16,21 +16,25 @@ public class MainViewModel : NotifyPropertyChanged
     public MainViewModel()
     {
         CypherCommand = new RelayCommand(CypherText);
+        DecryptCommand = new RelayCommand(DecryptText);
         LoadFromFileCommand = new RelayCommand(LoadFromFile);
+        SaveFileCommand = new RelayCommand(SaveFile);
+        LoadFromEncryptedFileCommand = new RelayCommand(LoadFromEncryptedFile);
+        SaveEncryptedFileCommand = new RelayCommand(SaveEncryptedFile);
         GenerateKeyCommand = new RelayCommand(GenerateRandomKey);
+        ResetAllCommand = new RelayCommand(ResetAll);
+        ResetBuffCommand = new RelayCommand(ResetBuff);
     }
 
-    private void GenerateRandomKey(object _)
-    {
-        var key = RandomNumberGenerator.GetBytes((int)Algorithm / 2);
-        var builder = new StringBuilder();
-        foreach (var b in key)
-        {
-            builder.Append(b.ToString("X2"));
-        }
-
-        Key = builder.ToString();
-    }
+    public ICommand GenerateKeyCommand { get; set; }
+    public ICommand CypherCommand { get; set; }
+    public ICommand DecryptCommand { get; set; }
+    public ICommand LoadFromFileCommand { get; set; }
+    public ICommand SaveFileCommand { get; set; }
+    public ICommand LoadFromEncryptedFileCommand { get; set; }
+    public ICommand SaveEncryptedFileCommand { get; set; }
+    public ICommand ResetAllCommand { get; set; }
+    public ICommand ResetBuffCommand { get; set; }
 
     private AesAlgorithm _algorithm = AesAlgorithm.Aes128;
 
@@ -45,22 +49,7 @@ public class MainViewModel : NotifyPropertyChanged
     }
 
 
-    public ICommand GenerateKeyCommand { get; set; }
-
-    private void LoadFromFile(object _)
-    {
-        var openFileDialog = new OpenFileDialog();
-        if (openFileDialog.ShowDialog() == true)
-        {
-            var file = openFileDialog.FileName;
-            Console.WriteLine("Test");
-            _buffer = File.ReadAllBytes(file);
-        }
-    }
-
-    private byte[] _buffer = null!;
-
-    private string? _key = "Thats my Kung Fu";
+    private string? _key;
 
     public string? Key
     {
@@ -72,40 +61,118 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
-    private string? _publicText = "Test";
+    private byte[]? _plainTextBuffer = null;
 
-    public string? PublicText
+    private string? _plainText;
+
+    public string? PlainText
     {
-        get => _publicText;
+        get => _plainText;
         set
         {
-            _publicText = value;
+            _plainText = value;
             OnPropertyChanged();
         }
     }
 
-    private string? _encryptedInput;
+    private byte[]? _encryptedTextBuffer = null;
 
-    public string? EncryptedInput
+    private string? _encryptedText;
+
+    public string? EncryptedText
     {
-        get => _encryptedInput;
+        get => _encryptedText;
         set
         {
-            _encryptedInput = value;
+            _encryptedText = value;
             OnPropertyChanged();
         }
     }
 
-    public ICommand CypherCommand { get; set; }
+    private void LoadFromFile(object _)
+    {
+        var openFileDialog = new OpenFileDialog();
+        if (openFileDialog.ShowDialog() == true)
+        {
+            var file = openFileDialog.FileName;
+            _plainTextBuffer = File.ReadAllBytes(file);
+            PlainText = Encoding.UTF8.GetString(_plainTextBuffer);
+        }
+    }
+    
+    private void LoadFromEncryptedFile(object _)
+    {
+        var openFileDialog = new OpenFileDialog();
+        if (openFileDialog.ShowDialog() == true)
+        {
+            var file = openFileDialog.FileName;
+            _encryptedTextBuffer = File.ReadAllBytes(file);
+            EncryptedText = Encoding.UTF8.GetString(_encryptedTextBuffer);
+        }
+    }
 
-    public ICommand LoadFromFileCommand { get; set; }
+    private void SaveFile(object _)
+    {
+        if (_plainText is null or "" && _plainTextBuffer is null)
+        {
+            MessageBox.Show("There is nothing to save");
+            return;
+        }
+
+        var saveFileDialog = new SaveFileDialog();
+        if (saveFileDialog.ShowDialog() == true)
+        {
+            var file = saveFileDialog.FileName;
+            _plainTextBuffer ??= Encoding.UTF8.GetBytes(_plainText!);
+            File.WriteAllBytes(file, _plainTextBuffer);
+        }
+    }
+    
+    private void SaveEncryptedFile(object _)
+    {
+        if (_encryptedText is null or "" && _encryptedTextBuffer is null)
+        {
+            MessageBox.Show("There is nothing to save");
+            return;
+        }
+
+        var saveFileDialog = new SaveFileDialog();
+        if (saveFileDialog.ShowDialog() == true)
+        {
+            var file = saveFileDialog.FileName;
+            _encryptedTextBuffer ??= Encoding.UTF8.GetBytes(_encryptedText!);
+            File.WriteAllBytes(file, _encryptedTextBuffer);
+        }
+    }
+
+    private void GenerateRandomKey(object _)
+    {
+        var key = RandomNumberGenerator.GetBytes((int)Algorithm / 2);
+        var builder = new StringBuilder();
+        foreach (var b in key)
+        {
+            builder.Append(b.ToString("X2"));
+        }
+
+        Key = builder.ToString();
+    }
+
 
     private void CypherText(object _)
     {
-        if (Key is null || PublicText is null)
+        if (_key is null)
         {
+            MessageBox.Show("Missing key");
             return;
         }
+
+        if (_plainText is null && _plainTextBuffer is null)
+        {
+            MessageBox.Show("Missing data to cypher");
+            return;
+        }
+
+        _plainTextBuffer ??= Encoding.UTF8.GetBytes(_plainText!);
 
         Func<byte[], byte[], byte[]> encryptionFunc = Algorithm switch
         {
@@ -115,11 +182,11 @@ public class MainViewModel : NotifyPropertyChanged
             _ => throw new Exception("Failed")
         };
 
-        var keyBytes = Encoding.UTF8.GetBytes(Key);
-        var inputBytes = Encoding.UTF8.GetBytes(PublicText);
+        var keyBytes = Encoding.UTF8.GetBytes(_key);
+
         try
         {
-            var result = encryptionFunc(inputBytes, keyBytes);
+            var result = encryptionFunc(_plainTextBuffer!, keyBytes);
 
             var builder = new StringBuilder();
             foreach (var b in result)
@@ -127,11 +194,90 @@ public class MainViewModel : NotifyPropertyChanged
                 builder.Append(b.ToString("X2"));
             }
 
-            EncryptedInput = builder.ToString();
+            _encryptedTextBuffer = result;
+            EncryptedText = builder.ToString();
         }
         catch (InvalidKeyLenghtException e)
         {
             MessageBox.Show(e.Message);
         }
+    }
+
+    private void DecryptText(object _)
+    {
+        if (_key is null)
+        {
+            MessageBox.Show("Missing key");
+            return;
+        }
+
+        if (_encryptedText is null && _encryptedTextBuffer is null)
+        {
+            MessageBox.Show("Missing data to encrypt");
+            return;
+        }
+
+        Func<byte[], byte[], byte[]> encryptionFunc = Algorithm switch
+        {
+            AesAlgorithm.Aes128 => Aes.Aes128Decrypt,
+            AesAlgorithm.Aes192 => Aes.Aes192Decrypt,
+            AesAlgorithm.Aes256 => Aes.Aes256Decrypt,
+            _ => throw new Exception("Failed")
+        };
+
+        var keyBytes = Encoding.UTF8.GetBytes(_key);
+
+        if (_encryptedTextBuffer == null)
+        {
+            if (_encryptedText.Length % 2 == 1)
+            {
+                MessageBox.Show("Invalid encrypted data length");
+                return;
+            }
+
+            _encryptedTextBuffer = new byte[_encryptedText.Length >> 1];
+            for (var i = 0; i < _encryptedText.Length >> 1; ++i)
+            {
+                _encryptedTextBuffer[i] = (byte)((GetHexVal(_encryptedText[i << 1]) << 4) +
+                                                 (GetHexVal(_encryptedText[(i << 1) + 1])));
+            }
+        }
+
+        try
+        {
+            var result = encryptionFunc(_encryptedTextBuffer, keyBytes);
+            PlainText = Encoding.UTF8.GetString(result);
+        }
+        catch (InvalidKeyLenghtException e)
+        {
+            MessageBox.Show(e.Message);
+        }
+    }
+
+    private int GetHexVal(char hex)
+    {
+        int val = (int)hex;
+        //For uppercase A-F letters:
+        //return val - (val < 58 ? 48 : 55);
+        //For lowercase a-f letters:
+        //return val - (val < 58 ? 48 : 87);
+        //Or the two combined, but a bit slower:
+        return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+    }
+
+    private void ResetAll(object _)
+    {
+        PlainText = "";
+        _plainTextBuffer = null;
+        EncryptedText = "";
+        _encryptedTextBuffer = null;
+        Key = "";
+        Algorithm = AesAlgorithm.Aes128;
+    }
+
+    private void ResetBuff(object _)
+    {
+        _plainTextBuffer = null;
+        _encryptedTextBuffer = null;
     }
 }
