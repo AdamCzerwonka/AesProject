@@ -4,20 +4,14 @@ namespace AesProject.Core;
 
 public class Aes
 {
-    private readonly byte[] _key;
+    private byte[] _data;
+    private readonly AesKeySchedule _aesKeySchedule;
+    private readonly List<AesBlock> _blocks = new();
 
-    public Aes(byte[] input, byte[] key)
+    public Aes(byte[] data, byte[] key)
     {
-        var inputSize = input.Length;
-        var numberOfBlocks = inputSize / 16;
-        if (numberOfBlocks * 16 < inputSize)
-        {
-            numberOfBlocks++;
-        }
-
-        BlockNumber = numberOfBlocks;
-        _input = input;
-        _key = key;
+        _data = data;
+        _aesKeySchedule = new AesKeySchedule(key);
     }
 
     public byte[] Encrypt()
@@ -25,11 +19,9 @@ public class Aes
         AddPadding();
         DivideIntoBlocks();
         var stream = new MemoryStream();
-        foreach (var t in Blocks)
+        foreach (var block in _blocks)
         {
-            var block = new AesBlock(t, _key);
-            var result = block.Encrypt();
-            stream.Write(result);
+            stream.Write(block.Encrypt());
         }
 
         return stream.ToArray();
@@ -39,13 +31,10 @@ public class Aes
     {
         DivideIntoBlocks();
         var stream = new MemoryStream();
-        foreach (var t in Blocks)
+        foreach (var block in _blocks)
         {
-            var block = new AesBlock(t, _key);
-            var result = block.Decrypt();
-            stream.Write(result);
+            stream.Write(block.Decrypt());
         }
-
 
         return RemovePadding(stream.ToArray());
     }
@@ -53,8 +42,8 @@ public class Aes
     private void AddPadding()
     {
         var stream = new MemoryStream();
-        stream.Write(_input);
-        var size = _input.Length;
+        stream.Write(_data);
+        var size = _data.Length;
         if (size % 16 == 0)
         {
             var buff = new byte[16];
@@ -77,17 +66,18 @@ public class Aes
             stream.Write(buff);
         }
 
-        _input = stream.ToArray();
+        _data = stream.ToArray();
     }
 
     private void DivideIntoBlocks()
     {
-        for (var i = 0; i < _input.Length / 16; i++)
+        for (var i = 0; i < _data.Length / 16; i++)
         {
             var startIdx = i * 16;
             var endIdx = startIdx + 16;
-            var block = _input[startIdx..endIdx];
-            Blocks.Add(block);
+            var block = _data[startIdx..endIdx];
+            var aesBlock = new AesBlock(block, _aesKeySchedule);
+            _blocks.Add(aesBlock);
         }
     }
 
@@ -97,9 +87,6 @@ public class Aes
         return input[..^lastByte];
     }
 
-    public int BlockNumber { get; set; }
-    private byte[] _input;
-    public List<byte[]> Blocks { get; set; } = new();
 
     public static byte[] Aes128Encrypt(byte[] data, byte[] key)
     {

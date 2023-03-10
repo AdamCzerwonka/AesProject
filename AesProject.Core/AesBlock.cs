@@ -1,5 +1,4 @@
-﻿using AesProject.Core.ArrayExtensions;
-using AesProject.Core.Exceptions;
+﻿using AesProject.Core.Exceptions;
 
 namespace AesProject.Core;
 
@@ -9,22 +8,15 @@ public class AesBlock
     private readonly AesKeySchedule _aesKeySchedule;
     private readonly int _roundsNumber;
 
-    public AesBlock(byte[] input, byte[] key)
+    public AesBlock(byte[] input, AesKeySchedule keySchedule)
     {
         if (input.Length != 16)
         {
             throw new InvalidBlockSizeException(input.Length);
         }
 
-        _roundsNumber = key.Length switch
-        {
-            16 => 10,
-            24 => 12,
-            32 => 14,
-            _ => throw new ArgumentException("Key size not good")
-        };
-
-        _aesKeySchedule = new AesKeySchedule(key);
+        _aesKeySchedule = keySchedule;
+        _roundsNumber = _aesKeySchedule.EncryptionRounds;
         _stateArray = ConvertToStateArray(input);
     }
 

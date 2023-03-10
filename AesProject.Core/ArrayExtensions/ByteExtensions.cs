@@ -19,5 +19,17 @@ public static class ByteExtensions
       }
 
       return builder.ToString();
-   } 
+   }
+
+   public static string GetBytesAsString(this byte[] bytes)
+   {
+      var builder = new StringBuilder();
+      foreach (var t in bytes)
+      {
+         builder.Append(t.ToString("X2"));
+         builder.Append(' ');
+      }
+
+      return builder.ToString();
+   }
 }
