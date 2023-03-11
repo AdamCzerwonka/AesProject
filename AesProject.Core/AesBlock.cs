@@ -1,12 +1,15 @@
 ﻿using AesProject.Core.Exceptions;
+using CommunityToolkit.HighPerformance;
 
 namespace AesProject.Core;
 
 public class AesBlock
 {
-    private readonly byte[,] _stateArray;
+    private readonly byte[,] _stateArray = new byte[4, 4];
+    private readonly byte[,] _keyStateArray = new byte[4, 4];
     private readonly AesKeySchedule _aesKeySchedule;
     private readonly int _roundsNumber;
+    private readonly byte[,] _buffer = new byte[4, 4];
 
     public AesBlock(byte[] input, AesKeySchedule keySchedule)
     {
@@ -17,10 +20,10 @@ public class AesBlock
 
         _aesKeySchedule = keySchedule;
         _roundsNumber = _aesKeySchedule.EncryptionRounds;
-        _stateArray = ConvertToStateArray(input);
+        ConvertToStateArray(input, _stateArray);
     }
 
-    public byte[] Decrypt()
+    public void Decrypt(byte[] output)
     {
         AddRoundKey(_aesKeySchedule.GetKey(_roundsNumber));
         for (var i = _roundsNumber - 1; i > 0; i--)
@@ -34,11 +37,11 @@ public class AesBlock
         InvShiftRows();
         InvSubBytes();
         AddRoundKey(_aesKeySchedule.GetKey(0));
-        
-        return FlattenStateArray();
+
+        FlattenStateArray(output);
     }
 
-    public byte[] Encrypt()
+    public void Encrypt(byte[] output)
     {
         AddRoundKey(_aesKeySchedule.GetKey(0));
         for (var i = 1; i < _roundsNumber; i++)
@@ -53,17 +56,17 @@ public class AesBlock
         ShiftRows();
         AddRoundKey(_aesKeySchedule.GetKey(_roundsNumber));
 
-        return FlattenStateArray();
+        FlattenStateArray(output);
     }
 
     private void AddRoundKey(byte[] key)
     {
-        var keyStateArray = ConvertToStateArray(key);
+        ConvertToStateArray(key, _keyStateArray);
         for (var i = 0; i < 4; i++)
         {
             for (var j = 0; j < 4; j++)
             {
-                _stateArray[i, j] ^= keyStateArray[i, j];
+                _stateArray[i, j] ^= _keyStateArray[i, j];
             }
         }
     }
@@ -92,12 +95,15 @@ public class AesBlock
 
     private void ShiftRows()
     {
-        var matrix = (_stateArray.Clone() as byte[,])!;
+        // var matrix = (_stateArray.Clone() as byte[,])!;
+        Array.Copy(_stateArray, _buffer, _buffer.Length);
+        // Buffer.BlockCopy(_stateArray,0,_buffer,0, _buffer.Length);
+        
         for (var i = 1; i < 4; i++)
         {
             for (var j = 0; j < 4; j++)
             {
-                _stateArray[i, j] = matrix[i, (j + i) % 4];
+                _stateArray[i, j] = _buffer[i, (j + i) % 4];
             }
         }
     }
@@ -116,17 +122,20 @@ public class AesBlock
 
     private void MixColumns()
     {
-        var matrix = (_stateArray.Clone() as byte[,])!;
+        // var matrix = (_stateArray.Clone() as byte[,])!;
+        // Buffer.BlockCopy(_stateArray,0,_buffer,0, _buffer.Length);
+        Array.Copy(_stateArray, _buffer, _buffer.Length);
+        
         for (var i = 0; i < 4; i++)
         {
-            _stateArray[0, i] = (byte)(MultiplyBy2(matrix[0, i]) ^ MultiplyBy3(matrix[1, i]) ^ matrix[2, i] ^
-                                       matrix[3, i]);
-            _stateArray[1, i] = (byte)(matrix[0, i] ^ MultiplyBy2(matrix[1, i]) ^ MultiplyBy3(matrix[2, i]) ^
-                                       matrix[3, i]);
-            _stateArray[2, i] = (byte)(matrix[0, i] ^ matrix[1, i] ^ MultiplyBy2(matrix[2, i]) ^
-                                       MultiplyBy3(matrix[3, i]));
-            _stateArray[3, i] = (byte)(MultiplyBy3(matrix[0, i]) ^ matrix[1, i] ^ matrix[2, i] ^
-                                       MultiplyBy2(matrix[3, i]));
+            _stateArray[0, i] = (byte)(MultiplyBy2(_buffer[0, i]) ^ MultiplyBy3(_buffer[1, i]) ^ _buffer[2, i] ^
+                                       _buffer[3, i]);
+            _stateArray[1, i] = (byte)(_buffer[0, i] ^ MultiplyBy2(_buffer[1, i]) ^ MultiplyBy3(_buffer[2, i]) ^
+                                       _buffer[3, i]);
+            _stateArray[2, i] = (byte)(_buffer[0, i] ^ _buffer[1, i] ^ MultiplyBy2(_buffer[2, i]) ^
+                                       MultiplyBy3(_buffer[3, i]));
+            _stateArray[3, i] = (byte)(MultiplyBy3(_buffer[0, i]) ^ _buffer[1, i] ^ _buffer[2, i] ^
+                                       MultiplyBy2(_buffer[3, i]));
         }
     }
 
@@ -166,9 +175,8 @@ public class AesBlock
         }
     }
 
-    private byte[] FlattenStateArray()
+    private void FlattenStateArray(byte[] res)
     {
-        var res = new byte[16];
         for (var i = 0; i < 4; i++)
         {
             for (var j = 0; j < 4; j++)
@@ -176,13 +184,10 @@ public class AesBlock
                 res[i * 4 + j] = _stateArray[j, i];
             }
         }
-
-        return res;
     }
 
-    private static byte[,] ConvertToStateArray(byte[] bytes)
+    private static void ConvertToStateArray(byte[] bytes, byte[,] matrix)
     {
-        var matrix = new byte[4, 4];
         for (var i = 0; i < 4; i++)
         {
             for (var j = 0; j < 4; j++)
@@ -190,8 +195,6 @@ public class AesBlock
                 matrix[i, j] = bytes[i + j * 4];
             }
         }
-
-        return matrix;
     }
 
     private static byte MultiplyBy2(byte a)

@@ -246,6 +246,7 @@ public class MainViewModel : NotifyPropertyChanged
         try
         {
             var result = encryptionFunc(_encryptedTextBuffer, keyBytes);
+            _plainTextBuffer = result;
             PlainText = Encoding.UTF8.GetString(result);
         }
         catch (InvalidKeyLenghtException e)

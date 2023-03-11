@@ -18,7 +18,8 @@ public class AesBlockTests
         var keySchedule = new AesKeySchedule(keyBytes);
 
         var block = new AesBlock(_bytes, keySchedule);
-        var result = block.Encrypt();
+        var result = new byte[16];
+        block.Encrypt(result);
 
         Assert.Equal(expectedResult, result);
     }
@@ -28,29 +29,31 @@ public class AesBlockTests
     {
         byte[] expectedResult =
             { 0x83, 0xd0, 0x7d, 0xb6, 0x15, 0xda, 0x00, 0xa8, 0xb2, 0xd4, 0x61, 0xd6, 0x00, 0x4a, 0xf8, 0xcb };
-        
+
         const string key = "Thats my Kung Fuaaaaaaaa";
         var keyBytes = Encoding.ASCII.GetBytes(key);
         var keySchedule = new AesKeySchedule(keyBytes);
 
         var block = new AesBlock(_bytes, keySchedule);
-        var result = block.Encrypt();
+        var result = new byte[16];
+        block.Encrypt(result);
 
         Assert.Equal(expectedResult, result);
     }
-    
+
     [Fact]
     public void TestEncrypt_ShouldCorrectlyEncryptBlock_WhenGiven256BitKeyCorrectInput()
     {
         byte[] expectedResult =
             { 0x39, 0x8d, 0xff, 0x4e, 0x8b, 0xd9, 0xba, 0x23, 0x35, 0x1d, 0x51, 0x78, 0xf1, 0x38, 0xf8, 0x7f };
-        
+
         const string key = "Thats my Kung Fuaaaaaaaabbbbbbbb";
         var keyBytes = Encoding.ASCII.GetBytes(key);
         var keySchedule = new AesKeySchedule(keyBytes);
-        
+
         var block = new AesBlock(_bytes, keySchedule);
-        var result = block.Encrypt();
+        var result = new byte[16];
+         block.Encrypt(result);
 
         Assert.Equal(expectedResult, result);
     }

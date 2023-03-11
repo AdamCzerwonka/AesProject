@@ -19,9 +19,11 @@ public class Aes
         AddPadding();
         DivideIntoBlocks();
         var stream = new MemoryStream();
+        var buffer = new byte[16];
         foreach (var block in _blocks)
         {
-            stream.Write(block.Encrypt());
+            block.Encrypt(buffer);
+            stream.Write(buffer);
         }
 
         return stream.ToArray();
@@ -31,9 +33,11 @@ public class Aes
     {
         DivideIntoBlocks();
         var stream = new MemoryStream();
+        var buffer = new byte[16];
         foreach (var block in _blocks)
         {
-            stream.Write(block.Decrypt());
+            block.Decrypt(buffer);
+            stream.Write(buffer);
         }
 
         return RemovePadding(stream.ToArray());
