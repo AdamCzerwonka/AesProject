@@ -17,16 +17,18 @@ public class Aes
     public byte[] Encrypt()
     {
         AddPadding();
-        DivideIntoBlocks();
-        var stream = new MemoryStream();
-        var buffer = new byte[16];
-        foreach (var block in _blocks)
+        var inputBuffer = new byte[16];
+        var outputBuffer = new byte[16];
+        var block = new AesBlock(inputBuffer, _aesKeySchedule);
+        for (var i = 0; i < _data.Length / 16; i++)
         {
-            block.Encrypt(buffer);
-            stream.Write(buffer);
+            var startIdx = i * 16;
+            Buffer.BlockCopy(_data, startIdx, inputBuffer, 0, 16);
+            block.Encrypt(inputBuffer, outputBuffer);
+            Buffer.BlockCopy(outputBuffer, 0, _data, startIdx, 16);
         }
 
-        return stream.ToArray();
+        return _data;
     }
 
     public byte[] Decrypt()
@@ -45,32 +47,30 @@ public class Aes
 
     private void AddPadding()
     {
-        var stream = new MemoryStream();
-        stream.Write(_data);
         var size = _data.Length;
+        int toAppend;
+        byte[] buffer;
         if (size % 16 == 0)
         {
-            var buff = new byte[16];
+            toAppend = 16;
+            buffer = new byte[toAppend];
             for (var i = 0; i < 16; i++)
             {
-                buff[i] = 16;
+                buffer[i] = 16;
             }
-
-            stream.Write(buff);
         }
         else
         {
-            var toAdd = 16 - (size % 16);
-            var buff = new byte[toAdd];
-            for (var i = 0; i < toAdd; i++)
+            toAppend = 16 - (size % 16);
+            buffer = new byte[toAppend];
+            for (var i = 0; i < toAppend; i++)
             {
-                buff[i] = (byte)toAdd;
+                buffer[i] = (byte)toAppend;
             }
-
-            stream.Write(buff);
         }
 
-        _data = stream.ToArray();
+        Array.Resize(ref _data, size + toAppend);
+        Buffer.BlockCopy(buffer, 0,_data, size, toAppend);
     }
 
     private void DivideIntoBlocks()
@@ -124,7 +124,7 @@ public class Aes
         var aes = new Aes(data, key);
         return aes.Encrypt();
     }
-    
+
     public static byte[] Aes192Decrypt(byte[] data, byte[] key)
     {
         if (key.Length != 24)
@@ -135,7 +135,7 @@ public class Aes
         var aes = new Aes(data, key);
         return aes.Decrypt();
     }
-    
+
     public static byte[] Aes256Encrypt(byte[] data, byte[] key)
     {
         if (key.Length != 32)
@@ -146,7 +146,7 @@ public class Aes
         var aes = new Aes(data, key);
         return aes.Encrypt();
     }
-    
+
     public static byte[] Aes256Decrypt(byte[] data, byte[] key)
     {
         if (key.Length != 32)

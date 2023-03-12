@@ -23,12 +23,13 @@ public static class ByteExtensions
 
    public static string GetBytesAsString(this byte[] bytes)
    {
-      var builder = new StringBuilder();
-      foreach (var t in bytes)
-      {
-         builder.Append(t.ToString("x2"));
-      }
-
-      return builder.ToString();
+      // var builder = new StringBuilder();
+      // foreach (var t in bytes)
+      // {
+      //    builder.Append(t.ToString("x2"));
+      // }
+      //
+      // return builder.ToString();
+      return Convert.ToHexString(bytes);
    }
 }

@@ -1,5 +1,4 @@
 ﻿using AesProject.Core.Exceptions;
-using CommunityToolkit.HighPerformance;
 
 namespace AesProject.Core;
 
@@ -8,7 +7,7 @@ public class AesBlock
     private readonly byte[,] _stateArray = new byte[4, 4];
     private readonly byte[,] _keyStateArray = new byte[4, 4];
     private readonly AesKeySchedule _aesKeySchedule;
-    private readonly int _roundsNumber;
+    private int _roundsNumber;
     private readonly byte[,] _buffer = new byte[4, 4];
 
     public AesBlock(byte[] input, AesKeySchedule keySchedule)
@@ -39,6 +38,18 @@ public class AesBlock
         AddRoundKey(_aesKeySchedule.GetKey(0));
 
         FlattenStateArray(output);
+    }
+
+    public void Encrypt(byte[] input, byte[] output)
+    {
+        if (input.Length != 16)
+        {
+            throw new InvalidBlockSizeException(input.Length);
+        }
+
+        _roundsNumber = _aesKeySchedule.EncryptionRounds;
+        ConvertToStateArray(input, _stateArray);
+        Encrypt(output);
     }
 
     public void Encrypt(byte[] output)
@@ -98,7 +109,7 @@ public class AesBlock
         // var matrix = (_stateArray.Clone() as byte[,])!;
         Array.Copy(_stateArray, _buffer, _buffer.Length);
         // Buffer.BlockCopy(_stateArray,0,_buffer,0, _buffer.Length);
-        
+
         for (var i = 1; i < 4; i++)
         {
             for (var j = 0; j < 4; j++)
@@ -125,7 +136,7 @@ public class AesBlock
         // var matrix = (_stateArray.Clone() as byte[,])!;
         // Buffer.BlockCopy(_stateArray,0,_buffer,0, _buffer.Length);
         Array.Copy(_stateArray, _buffer, _buffer.Length);
-        
+
         for (var i = 0; i < 4; i++)
         {
             _stateArray[0, i] = (byte)(MultiplyBy2(_buffer[0, i]) ^ MultiplyBy3(_buffer[1, i]) ^ _buffer[2, i] ^
