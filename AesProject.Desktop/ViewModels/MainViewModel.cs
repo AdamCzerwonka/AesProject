@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Windows.Input;
 using System.Text;
 using System.Windows;
+using AesProject.Core.ArrayExtensions;
 using AesProject.Core.Exceptions;
 using AesProject.Desktop.Models;
 using Microsoft.Win32;
@@ -19,22 +21,40 @@ public class MainViewModel : NotifyPropertyChanged
         DecryptCommand = new RelayCommand(DecryptText);
         LoadFromFileCommand = new RelayCommand(LoadFromFile);
         SaveFileCommand = new RelayCommand(SaveFile);
-        LoadFromEncryptedFileCommand = new RelayCommand(LoadFromEncryptedFile);
+        LoadFromEncryptedFileCommand = new RelayCommand(LoadEncryptedFromFile);
         SaveEncryptedFileCommand = new RelayCommand(SaveEncryptedFile);
         GenerateKeyCommand = new RelayCommand(GenerateRandomKey);
         ResetAllCommand = new RelayCommand(ResetAll);
         ResetBuffCommand = new RelayCommand(ResetBuff);
     }
 
-    public ICommand GenerateKeyCommand { get; set; }
-    public ICommand CypherCommand { get; set; }
-    public ICommand DecryptCommand { get; set; }
-    public ICommand LoadFromFileCommand { get; set; }
-    public ICommand SaveFileCommand { get; set; }
-    public ICommand LoadFromEncryptedFileCommand { get; set; }
-    public ICommand SaveEncryptedFileCommand { get; set; }
-    public ICommand ResetAllCommand { get; set; }
-    public ICommand ResetBuffCommand { get; set; }
+    #region Commands
+
+    public ICommand GenerateKeyCommand { get; }
+    public ICommand CypherCommand { get; }
+    public ICommand DecryptCommand { get; }
+    public ICommand LoadFromFileCommand { get; }
+    public ICommand SaveFileCommand { get; }
+    public ICommand LoadFromEncryptedFileCommand { get; }
+    public ICommand SaveEncryptedFileCommand { get; }
+    public ICommand ResetAllCommand { get; }
+    public ICommand ResetBuffCommand { get; }
+
+    #endregion
+
+    #region Properties
+
+    private string _elapsedTime = string.Empty;
+
+    public string ElapsedTime
+    {
+        get => _elapsedTime;
+        set
+        {
+            _elapsedTime = value;
+            OnPropertyChanged();
+        }
+    }
 
     private AesAlgorithm _algorithm = AesAlgorithm.Aes128;
 
@@ -89,26 +109,32 @@ public class MainViewModel : NotifyPropertyChanged
         }
     }
 
+    #endregion
+
     private void LoadFromFile(object _)
     {
         var openFileDialog = new OpenFileDialog();
-        if (openFileDialog.ShowDialog() == true)
+        if (openFileDialog.ShowDialog() != true)
         {
-            var file = openFileDialog.FileName;
-            _plainTextBuffer = File.ReadAllBytes(file);
-            PlainText = Encoding.UTF8.GetString(_plainTextBuffer);
+            return;
         }
+
+        var file = openFileDialog.FileName;
+        _plainTextBuffer = File.ReadAllBytes(file);
+        PlainText = Encoding.UTF8.GetString(_plainTextBuffer);
     }
-    
-    private void LoadFromEncryptedFile(object _)
+
+    private void LoadEncryptedFromFile(object _)
     {
         var openFileDialog = new OpenFileDialog();
-        if (openFileDialog.ShowDialog() == true)
+        if (openFileDialog.ShowDialog() != true)
         {
-            var file = openFileDialog.FileName;
-            _encryptedTextBuffer = File.ReadAllBytes(file);
-            EncryptedText = Encoding.UTF8.GetString(_encryptedTextBuffer);
+            return;
         }
+
+        var file = openFileDialog.FileName;
+        _encryptedTextBuffer = File.ReadAllBytes(file);
+        EncryptedText = _encryptedTextBuffer.GetBytesAsString();
     }
 
     private void SaveFile(object _)
@@ -127,7 +153,7 @@ public class MainViewModel : NotifyPropertyChanged
             File.WriteAllBytes(file, _plainTextBuffer);
         }
     }
-    
+
     private void SaveEncryptedFile(object _)
     {
         if (_encryptedText is null or "" && _encryptedTextBuffer is null)
@@ -186,16 +212,12 @@ public class MainViewModel : NotifyPropertyChanged
 
         try
         {
-            var result = encryptionFunc(_plainTextBuffer!, keyBytes);
-
-            var builder = new StringBuilder();
-            foreach (var b in result)
-            {
-                builder.Append(b.ToString("X2"));
-            }
-
-            _encryptedTextBuffer = result;
-            EncryptedText = builder.ToString();
+            var watch = new Stopwatch();
+            watch.Start();
+            var result = encryptionFunc(_plainTextBuffer, keyBytes);
+            EncryptedText = result.GetBytesAsString();
+            watch.Stop();
+            ElapsedTime =$"Finished in: {watch.ElapsedMilliseconds}ms";
         }
         catch (InvalidKeyLenghtException e)
         {

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AesProject.Desktop"
         xmlns:viewModels="clr-namespace:AesProject.Desktop.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1110" ResizeMode="NoResize">
+        Title="MainWindow" Height="640" Width="1110" ResizeMode="NoResize">
     <Window.Resources>
         <local:AesValueConverter x:Key="AesConverter" />
     </Window.Resources>
@@ -19,11 +19,12 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="150px" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="40px" />
         </Grid.RowDefinitions>
 
         <!-- Column 0-2 -->
@@ -75,13 +76,14 @@
         </StackPanel>
 
         <!-- Column 0 -->
-        <StackPanel Grid.Row="1" Grid.Column="0" Margin="10px">
+        <StackPanel Grid.Row="1" Grid.Column="0" Margin="10">
             <Label FontSize="16px">Plain text:</Label>
             <TextBox Text="{Binding PlainText}"
                      Background="DarkSeaGreen"
                      Width="450px" Height="300px"
                      FontSize="20px"
-                     TextWrapping="Wrap" />
+                     TextWrapping="Wrap"
+                     ScrollViewer.VerticalScrollBarVisibility="Visible" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button
                     Command="{Binding LoadFromFileCommand}"
@@ -118,7 +120,8 @@
                 Background="LightBlue"
                 Width="450px" Height="300px"
                 FontSize="20px"
-                TextWrapping="Wrap" />
+                TextWrapping="Wrap"
+                ScrollViewer.VerticalScrollBarVisibility="Visible" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button
                     Command="{Binding LoadFromEncryptedFileCommand}"
@@ -133,5 +136,21 @@
             </StackPanel>
         </StackPanel>
 
+        <Border
+            BorderThickness="0 1 0 0"
+            BorderBrush="Black"
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="3">
+
+            <StackPanel
+                Background="LightGray">
+                <Label
+                    Margin="0 0 10 0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Content="{Binding ElapsedTime}" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

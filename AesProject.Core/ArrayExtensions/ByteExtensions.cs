@@ -26,8 +26,7 @@ public static class ByteExtensions
       var builder = new StringBuilder();
       foreach (var t in bytes)
       {
-         builder.Append(t.ToString("X2"));
-         builder.Append(' ');
+         builder.Append(t.ToString("x2"));
       }
 
       return builder.ToString();
