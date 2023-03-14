@@ -44,6 +44,18 @@ public class MainViewModel : NotifyPropertyChanged
 
     #region Properties
 
+    private bool _useFileAsInput;
+
+    public bool UseFileAsInput
+    {
+        get => _useFileAsInput;
+        set
+        {
+            _useFileAsInput = value;
+            OnPropertyChanged();
+        }
+    }
+
     private string _elapsedTime = string.Empty;
 
     public string ElapsedTime
@@ -98,6 +110,7 @@ public class MainViewModel : NotifyPropertyChanged
     private byte[]? _encryptedTextBuffer = null;
 
     private string? _encryptedText;
+    private bool _useTextAsInput;
 
     public string? EncryptedText
     {
@@ -192,13 +205,12 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        if (_plainText is null && _plainTextBuffer is null)
+        if ((_plainText is null && !UseFileAsInput) || (_plainTextBuffer is null && UseFileAsInput))
         {
             MessageBox.Show("Missing data to cypher");
             return;
         }
 
-        _plainTextBuffer ??= Encoding.UTF8.GetBytes(_plainText!);
 
         Func<byte[], byte[], byte[]> encryptionFunc = Algorithm switch
         {
@@ -212,12 +224,17 @@ public class MainViewModel : NotifyPropertyChanged
 
         try
         {
+            if (!UseFileAsInput)
+            {
+                _plainTextBuffer = Encoding.UTF8.GetBytes(_plainText!);
+            }
+
             var watch = new Stopwatch();
             watch.Start();
-            var result = encryptionFunc(_plainTextBuffer, keyBytes);
-            EncryptedText = result.GetBytesAsString();
+            _encryptedTextBuffer = encryptionFunc(_plainTextBuffer, keyBytes);
+            EncryptedText = _encryptedTextBuffer.GetBytesAsString();
             watch.Stop();
-            ElapsedTime =$"Finished in: {watch.ElapsedMilliseconds}ms";
+            ElapsedTime = $"Finished in: {watch.ElapsedMilliseconds}ms";
         }
         catch (InvalidKeyLenghtException e)
         {
@@ -233,7 +250,7 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        if (_encryptedText is null && _encryptedTextBuffer is null)
+        if (_encryptedText is null || (_encryptedTextBuffer is null && UseFileAsInput))
         {
             MessageBox.Show("Missing data to encrypt");
             return;
@@ -249,7 +266,7 @@ public class MainViewModel : NotifyPropertyChanged
 
         var keyBytes = Encoding.UTF8.GetBytes(_key);
 
-        if (_encryptedTextBuffer == null)
+        if (!UseFileAsInput)
         {
             if (_encryptedText.Length % 2 == 1)
             {
@@ -279,7 +296,7 @@ public class MainViewModel : NotifyPropertyChanged
 
     private int GetHexVal(char hex)
     {
-        int val = (int)hex;
+        int val = hex;
         //For uppercase A-F letters:
         //return val - (val < 58 ? 48 : 55);
         //For lowercase a-f letters:

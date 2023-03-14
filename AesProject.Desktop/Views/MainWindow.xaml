@@ -6,9 +6,10 @@
         xmlns:local="clr-namespace:AesProject.Desktop"
         xmlns:viewModels="clr-namespace:AesProject.Desktop.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="640" Width="1110" ResizeMode="NoResize">
+        Title="Aes Project" Height="640" Width="1110" ResizeMode="NoResize">
     <Window.Resources>
         <local:AesValueConverter x:Key="AesConverter" />
+        <local:BoolInvertConverter x:Key="BoolInvertConverter" />
     </Window.Resources>
 
     <Window.DataContext>
@@ -100,6 +101,15 @@
 
         <!-- Column 1 -->
         <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
+            <Label Content="Use data from:" />
+            <RadioButton
+                GroupName="InputSource"
+                Content="File"
+                IsChecked="{Binding UseFileAsInput}" />
+            <RadioButton
+                GroupName="InputSource"
+                Content="Text"
+                IsChecked="{Binding UseFileAsInput, Converter={StaticResource BoolInvertConverter}}" />
             <Button
                 Command="{Binding CypherCommand}"
                 Content="Cypher ->"
