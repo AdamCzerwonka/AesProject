@@ -134,7 +134,8 @@ public class MainViewModel : NotifyPropertyChanged
 
         var file = openFileDialog.FileName;
         _plainTextBuffer = File.ReadAllBytes(file);
-        PlainText = Encoding.UTF8.GetString(_plainTextBuffer);
+        UseFileAsInput = true;
+        PlainText = "File loaded";
     }
 
     private void LoadEncryptedFromFile(object _)
@@ -147,7 +148,8 @@ public class MainViewModel : NotifyPropertyChanged
 
         var file = openFileDialog.FileName;
         _encryptedTextBuffer = File.ReadAllBytes(file);
-        EncryptedText = _encryptedTextBuffer.GetBytesAsString();
+        UseFileAsInput = true;
+        EncryptedText = "File loaded";
     }
 
     private void SaveFile(object _)
@@ -250,7 +252,7 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        if (_encryptedText is null || (_encryptedTextBuffer is null && UseFileAsInput))
+        if ((_encryptedText is null && !UseFileAsInput) || (_encryptedTextBuffer is null && UseFileAsInput))
         {
             MessageBox.Show("Missing data to encrypt");
             return;
