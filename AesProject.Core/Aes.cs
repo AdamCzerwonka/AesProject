@@ -2,47 +2,114 @@ using AesProject.Core.Exceptions;
 
 namespace AesProject.Core;
 
+/// <summary>
+/// Class is responsible of encrypting and decrypting data using aes algorithm
+/// </summary>
 public class Aes
 {
-    private byte[] _data;
-    private readonly AesKeySchedule _aesKeySchedule;
-    private readonly List<AesBlock> _blocks = new();
+    private byte[] _data = null!;
+    private readonly AesBlock _block;
 
-    public Aes(byte[] data, byte[] key)
+    /// <summary>
+    /// Creates new aes object and initializes key schedule
+    /// </summary>
+    /// <param name="key">Encryption key</param>
+    public Aes(byte[] key)
     {
-        _data = data;
-        _aesKeySchedule = new AesKeySchedule(key);
+        var aesKeySchedule = new AesKeySchedule(key);
+        _block = new AesBlock(aesKeySchedule);
     }
 
-    public byte[] Encrypt()
+    /// <summary>
+    /// Encrypts given data
+    /// </summary>
+    /// <param name="data">Data for encryption</param>
+    /// <returns>Encrypted data</returns>
+    public byte[] Encrypt(byte[] data)
     {
+        _data = data;
         AddPadding();
         var inputBuffer = new byte[16];
         var outputBuffer = new byte[16];
-        var block = new AesBlock(inputBuffer, _aesKeySchedule);
         for (var i = 0; i < _data.Length / 16; i++)
         {
             var startIdx = i * 16;
             Buffer.BlockCopy(_data, startIdx, inputBuffer, 0, 16);
-            block.Encrypt(inputBuffer, outputBuffer);
+            _block.Encrypt(inputBuffer, outputBuffer);
             Buffer.BlockCopy(outputBuffer, 0, _data, startIdx, 16);
         }
 
         return _data;
     }
 
-    public byte[] Decrypt()
+    /// <summary>
+    /// Encrypts data from provided file
+    /// </summary>
+    /// <param name="fileName">name of the file to read data from</param>
+    /// <returns>encrypted data</returns>
+    public byte[] Encrypt(string fileName)
     {
-        DivideIntoBlocks();
-        var stream = new MemoryStream();
+        var info = new FileInfo(fileName);
+        using var file = File.OpenRead(fileName);
+        var outputStream = new MemoryStream();
         var buffer = new byte[16];
-        foreach (var block in _blocks)
+        var outputBuffer = new byte[16];
+        int bytesRead;
+        while ((bytesRead = file.Read(buffer)) != 0)
         {
-            block.Decrypt(buffer);
-            stream.Write(buffer);
+            if (bytesRead == 16)
+            {
+                _block.Encrypt(buffer, outputBuffer);
+            }
+            else
+            {
+                var bytesToAdd = 16 - bytesRead;
+                for (var i = bytesRead; i < 16; i++)
+                {
+                    buffer[i] = (byte)bytesToAdd;
+                }
+
+                _block.Encrypt(buffer, outputBuffer);
+            }
+
+            outputStream.Write(outputBuffer);
         }
 
-        return RemovePadding(stream.ToArray());
+        // ReSharper disable once InvertIf
+        if (info.Length % 16 == 0)
+        {
+            for (var i = 0; i < 16; i++)
+            {
+                buffer[i] = 16;
+            }
+
+            _block.Encrypt(buffer, outputBuffer);
+            outputStream.Write(outputBuffer);
+        }
+
+        return outputStream.ToArray();
+    }
+
+    /// <summary>
+    /// Decrypt given data
+    /// </summary>
+    /// <param name="data">data to be decrypted</param>
+    /// <returns>decrypted data</returns>
+    public byte[] Decrypt(byte[] data)
+    {
+        _data = data;
+        
+        var inputBuffer = new byte[16];
+        var outputBuffer = new byte[16];
+        for (var i = 0; i < _data.Length / 16; i++)
+        {
+            var startIdx = i * 16;
+            Buffer.BlockCopy(_data, startIdx, inputBuffer, 0, 16);
+            _block.Decrypt(inputBuffer, outputBuffer);
+            Buffer.BlockCopy(outputBuffer, 0, _data, startIdx, 16);
+        }
+
+        return RemovePadding(_data);
     }
 
     private void AddPadding()
@@ -70,19 +137,7 @@ public class Aes
         }
 
         Array.Resize(ref _data, size + toAppend);
-        Buffer.BlockCopy(buffer, 0,_data, size, toAppend);
-    }
-
-    private void DivideIntoBlocks()
-    {
-        for (var i = 0; i < _data.Length / 16; i++)
-        {
-            var startIdx = i * 16;
-            var endIdx = startIdx + 16;
-            var block = _data[startIdx..endIdx];
-            var aesBlock = new AesBlock(block, _aesKeySchedule);
-            _blocks.Add(aesBlock);
-        }
+        Buffer.BlockCopy(buffer, 0, _data, size, toAppend);
     }
 
     private byte[] RemovePadding(byte[] input)
@@ -99,8 +154,8 @@ public class Aes
             throw new InvalidKeyLenghtException(16, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Encrypt();
+        var aes = new Aes(key);
+        return aes.Encrypt(data);
     }
 
     public static byte[] Aes128Decrypt(byte[] data, byte[] key)
@@ -110,8 +165,8 @@ public class Aes
             throw new InvalidKeyLenghtException(16, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Decrypt();
+        var aes = new Aes(key);
+        return aes.Decrypt(data);
     }
 
     public static byte[] Aes192Encrypt(byte[] data, byte[] key)
@@ -121,8 +176,8 @@ public class Aes
             throw new InvalidKeyLenghtException(24, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Encrypt();
+        var aes = new Aes(key);
+        return aes.Encrypt(data);
     }
 
     public static byte[] Aes192Decrypt(byte[] data, byte[] key)
@@ -132,8 +187,8 @@ public class Aes
             throw new InvalidKeyLenghtException(24, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Decrypt();
+        var aes = new Aes(key);
+        return aes.Decrypt(data);
     }
 
     public static byte[] Aes256Encrypt(byte[] data, byte[] key)
@@ -143,8 +198,8 @@ public class Aes
             throw new InvalidKeyLenghtException(32, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Encrypt();
+        var aes = new Aes(key);
+        return aes.Encrypt(data);
     }
 
     public static byte[] Aes256Decrypt(byte[] data, byte[] key)
@@ -154,7 +209,7 @@ public class Aes
             throw new InvalidKeyLenghtException(32, key.Length);
         }
 
-        var aes = new Aes(data, key);
-        return aes.Decrypt();
+        var aes = new Aes(key);
+        return aes.Decrypt(data);
     }
 }

@@ -15,8 +15,8 @@ public class AesTests
         var toEncrypt = "Two One Nine Two";
         var key = "Thats my Kung Fu";
 
-        var aes = new Aes(Encoding.ASCII.GetBytes(toEncrypt), Encoding.ASCII.GetBytes(key));
-        var result = aes.Encrypt();
+        var aes = new Aes(Encoding.ASCII.GetBytes(key));
+        var result = aes.Encrypt(Encoding.ASCII.GetBytes(toEncrypt));
 
         Assert.Equal(expected, result);
     }
@@ -33,8 +33,8 @@ public class AesTests
         var toEncrypt = "Two One Nine Twoa";
         var key = "Thats my Kung Fu";
 
-        var aes = new Aes(Encoding.ASCII.GetBytes(toEncrypt), Encoding.ASCII.GetBytes(key));
-        var result = aes.Encrypt();
+        var aes = new Aes(Encoding.ASCII.GetBytes(key));
+        var result = aes.Encrypt(Encoding.ASCII.GetBytes(toEncrypt));
 
         Assert.Equal(expected, result);
     }
@@ -47,7 +47,7 @@ public class AesTests
 
         var encryptedText = Aes.Aes128Encrypt(testText, testKey);
 
-        var result = new Aes(encryptedText, testKey).Decrypt();
+        var result = new Aes(testKey).Decrypt(encryptedText);
         Assert.Equal(testText, result);
     }
 
@@ -59,10 +59,10 @@ public class AesTests
 
         var encryptedText = Aes.Aes128Encrypt(testText, testKey);
         var result = Aes.Aes128Decrypt(encryptedText, testKey);
-        
+
         Assert.Equal(testText, result);
     }
-    
+
     [Fact]
     public void TestEncryptDecrypt192_ShouldReturnSameValueAsInput_WhenGivenEncryptedInput()
     {
@@ -71,10 +71,10 @@ public class AesTests
 
         var encryptedText = Aes.Aes192Encrypt(testText, testKey);
         var result = Aes.Aes192Decrypt(encryptedText, testKey);
-        
+
         Assert.Equal(testText, result);
     }
-    
+
     [Fact]
     public void TestEncryptDecrypt256_ShouldReturnSameValueAsInput_WhenGivenEncryptedInput()
     {
@@ -83,7 +83,7 @@ public class AesTests
 
         var encryptedText = Aes.Aes256Encrypt(testText, testKey);
         var result = Aes.Aes256Decrypt(encryptedText, testKey);
-        
+
         Assert.Equal(testText, result);
     }
 }

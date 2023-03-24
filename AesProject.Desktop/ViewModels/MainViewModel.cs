@@ -124,6 +124,8 @@ public class MainViewModel : NotifyPropertyChanged
 
     #endregion
 
+    private string? _plainTextFileName;
+
     private void LoadFromFile(object _)
     {
         var openFileDialog = new OpenFileDialog();
@@ -132,8 +134,7 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        var file = openFileDialog.FileName;
-        _plainTextBuffer = File.ReadAllBytes(file);
+        _plainTextFileName = openFileDialog.FileName;
         UseFileAsInput = true;
         PlainText = "File loaded";
     }
@@ -207,7 +208,7 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        if ((_plainText is null && !UseFileAsInput) || (_plainTextBuffer is null && UseFileAsInput))
+        if ((_plainText is null && !UseFileAsInput) || (_plainTextFileName is null && UseFileAsInput))
         {
             MessageBox.Show("Missing data to cypher");
             return;
@@ -226,15 +227,23 @@ public class MainViewModel : NotifyPropertyChanged
 
         try
         {
-            if (!UseFileAsInput)
-            {
-                _plainTextBuffer = Encoding.UTF8.GetBytes(_plainText!);
-            }
-
             var watch = new Stopwatch();
             watch.Start();
-            _encryptedTextBuffer = encryptionFunc(_plainTextBuffer, keyBytes);
-            EncryptedText = _encryptedTextBuffer.GetBytesAsString();
+            if (_plainTextFileName is not null && UseFileAsInput)
+            {
+                var aes = new Aes(keyBytes);
+                _encryptedTextBuffer = aes.Encrypt(_plainTextFileName);
+                EncryptedText = _encryptedTextBuffer.GetBytesAsString();
+                _plainTextFileName = null;
+                UseFileAsInput = false;
+            }
+            else
+            {
+                _plainTextBuffer = Encoding.UTF8.GetBytes(_plainText!);
+                _encryptedTextBuffer = encryptionFunc(_plainTextBuffer, keyBytes);
+                EncryptedText = _encryptedTextBuffer.GetBytesAsString();
+            }
+
             watch.Stop();
             ElapsedTime = $"Finished in: {watch.ElapsedMilliseconds}ms";
         }

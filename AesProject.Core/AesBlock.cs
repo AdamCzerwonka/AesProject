@@ -22,13 +22,31 @@ public class AesBlock
         ConvertToStateArray(input, _stateArray);
     }
 
+    public AesBlock(AesKeySchedule keySchedule)
+    {
+        _aesKeySchedule = keySchedule;
+        _roundsNumber = _aesKeySchedule.EncryptionRounds;
+    }
+    
+    public void Decrypt(byte[] input, byte[] output)
+    {
+        if (input.Length != 16)
+        {
+            throw new InvalidBlockSizeException(input.Length);
+        }
+
+        _roundsNumber = _aesKeySchedule.EncryptionRounds;
+        ConvertToStateArray(input, _stateArray);
+        Decrypt(output);
+    }
+
     public void Decrypt(byte[] output)
     {
         AddRoundKey(_aesKeySchedule.GetKey(_roundsNumber));
         for (var i = _roundsNumber - 1; i > 0; i--)
         {
-            InvShiftRows();
             InvSubBytes();
+            InvShiftRows();
             AddRoundKey(_aesKeySchedule.GetKey(i));
             InvMixColumns();
         }

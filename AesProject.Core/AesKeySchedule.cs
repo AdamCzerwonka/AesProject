@@ -8,40 +8,19 @@ public class AesKeySchedule
 
     public AesKeySchedule(byte[] key)
     {
+        if (key.Length is not (16 or 24 or 32))
+        {
+            throw new InvalidKeyLenghtException();
+        }
+        
         _encryptionKey = key;
-
-        if (key.Length == 16)
+        var expandedKey = ExpandKey();
+        var rounds = EncryptionRounds + 1;
+        for (var i = 0; i < rounds; i++)
         {
-            _keys.Add(0, key);
-            for (var i = 1; i < 11; i++)
-            {
-                key = Generate128NextKey(key, i);
-                _keys.Add(i, key);
-            }
-        }
-        else if (key.Length == 24)
-        {
-            var test = Expand192BitKey();
-            for (var i = 0; i < 13; i++)
-            {
-                var startIdx = i * 16;
-                var slice = test[startIdx..(startIdx + 16)];
-                _keys.Add(i, slice);
-            }
-        }
-        else if (key.Length == 32)
-        {
-            var test = Expand256BitKey();
-            for (var i = 0; i < 15; i++)
-            {
-                var startIdx = i * 16;
-                var slice = test[startIdx..(startIdx + 16)];
-                _keys.Add(i, slice);
-            }
-        }
-        else
-        {
-            throw new InvalidKeyLenghtException(16, key.Length);
+            var startIdx = i * 16;
+            var slice = expandedKey[startIdx..(startIdx + 16)];
+            _keys.Add(i, slice);
         }
     }
 
@@ -60,17 +39,18 @@ public class AesKeySchedule
     public byte[] GetKey(int roundNumber)
         => _keys[roundNumber];
 
-    private byte[] Expand256BitKey()
+    private byte[] ExpandKey()
     {
-        var expandedKey = new byte[240];
+        var keySize = _encryptionKey.Length;
+        var expandedKeySize = (EncryptionRounds + 1) * 16;
+        var expandedKey = new byte[expandedKeySize];
         _encryptionKey.CopyTo(expandedKey, 0);
+        var byteCount = keySize;
         var round = 0;
-        var byteCount = 32;
-        while (byteCount < 240)
+        while (byteCount < expandedKeySize)
         {
-            var count = byteCount - 4;
-            var temp = expandedKey[count..byteCount];
-            if (byteCount % 32 == 0)
+            var temp = expandedKey[(byteCount - 4)..byteCount];
+            if (byteCount % keySize == 0)
             {
                 temp = RotWord(temp);
                 for (var i = 0; i < 4; i++)
@@ -81,7 +61,7 @@ public class AesKeySchedule
                 temp[0] ^= Rcon[round++];
             }
 
-            if (byteCount % 32 == 16)
+            if (keySize == 32 && byteCount % 32 == 16)
             {
                 for (var i = 0; i < 4; i++)
                 {
@@ -89,74 +69,14 @@ public class AesKeySchedule
                 }
             }
 
-            for (var i = 0; i < 4; i++)
+            for (var j = 0; j < 4; j++)
             {
-                expandedKey[byteCount] = (byte)(temp[i] ^ expandedKey[byteCount - 32]);
+                expandedKey[byteCount] = (byte)(expandedKey[byteCount - keySize] ^ temp[j]);
                 byteCount++;
             }
         }
 
         return expandedKey;
-    }
-
-    private byte[] Expand192BitKey()
-    {
-        var expandedKey = new byte[208];
-        _encryptionKey.CopyTo(expandedKey, 0);
-        var byteCount = 24;
-        var round = 0;
-        while (byteCount < 208)
-        {
-            var xorBytes = expandedKey[(byteCount - 4)..byteCount];
-            if (byteCount % 24 == 0)
-            {
-                xorBytes = RotWord(xorBytes);
-                for (var i = 0; i < 4; i++)
-                {
-                    xorBytes[i] = SBox.Get(xorBytes[i]);
-                }
-
-                xorBytes[0] ^= Rcon[round++];
-            }
-
-            for (var j = 0; j < 4; j++)
-            {
-                expandedKey[byteCount] = (byte)(expandedKey[byteCount - 24] ^ xorBytes[j]);
-                byteCount++;
-            }
-        }
-
-        return expandedKey;
-    }
-
-    private byte[] Generate128NextKey(byte[] key, int round)
-    {
-        var nextKey = new byte[16];
-        var w3 = key[12..];
-
-        w3 = RotWord(w3);
-
-        for (var i = 0; i < 4; i++)
-        {
-            w3[i] = SBox.Get(w3[i]);
-        }
-
-        w3[0] ^= Rcon[round - 1];
-
-        for (var i = 0; i < 4; i++)
-        {
-            var startIdx = i * 4;
-            var endIdx = startIdx + 4;
-            var slice = key[startIdx..endIdx];
-            for (var j = 0; j < 4; j++)
-            {
-                w3[j] ^= slice[j];
-            }
-
-            w3.CopyTo(nextKey, startIdx);
-        }
-
-        return nextKey;
     }
 
     private static byte[] RotWord(byte[] word)
