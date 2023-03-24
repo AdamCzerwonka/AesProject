@@ -51,7 +51,7 @@ public class Aes
     {
         var info = new FileInfo(fileName);
         using var file = File.OpenRead(fileName);
-        var outputStream = new MemoryStream();
+        var outputStream = new MemoryStream((int)info.Length + 16);
         var buffer = new byte[16];
         var outputBuffer = new byte[16];
         int bytesRead;
@@ -90,6 +90,22 @@ public class Aes
         return outputStream.ToArray();
     }
 
+    public byte[] Decrypt(string fileName)
+    {
+        var info = new FileInfo(fileName);
+        using var file = File.OpenRead(fileName);
+        var outputStream = new MemoryStream((int)info.Length + 16);
+        var buffer = new byte[16];
+        var outputBuffer = new byte[16];
+        while (file.Read(buffer) != 0)
+        {
+            _block.Decrypt(buffer, outputBuffer);
+            outputStream.Write(outputBuffer);
+        }
+
+        return RemovePadding(outputStream.ToArray());
+    }
+
     /// <summary>
     /// Decrypt given data
     /// </summary>
@@ -98,7 +114,7 @@ public class Aes
     public byte[] Decrypt(byte[] data)
     {
         _data = data;
-        
+
         var inputBuffer = new byte[16];
         var outputBuffer = new byte[16];
         for (var i = 0; i < _data.Length / 16; i++)
