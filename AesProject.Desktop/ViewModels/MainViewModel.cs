@@ -125,6 +125,7 @@ public class MainViewModel : NotifyPropertyChanged
     #endregion
 
     private string? _plainTextFileName;
+    private string? _encryptedTextFileName;
 
     private void LoadFromFile(object _)
     {
@@ -146,9 +147,8 @@ public class MainViewModel : NotifyPropertyChanged
         {
             return;
         }
-
-        var file = openFileDialog.FileName;
-        _encryptedTextBuffer = File.ReadAllBytes(file);
+        
+        _encryptedTextFileName = openFileDialog.FileName;
         UseFileAsInput = true;
         EncryptedText = "File loaded";
     }
@@ -261,7 +261,7 @@ public class MainViewModel : NotifyPropertyChanged
             return;
         }
 
-        if ((_encryptedText is null && !UseFileAsInput) || (_encryptedTextBuffer is null && UseFileAsInput))
+        if ((_encryptedText is null && !UseFileAsInput) || (_encryptedTextFileName is null && UseFileAsInput))
         {
             MessageBox.Show("Missing data to encrypt");
             return;
@@ -277,27 +277,42 @@ public class MainViewModel : NotifyPropertyChanged
 
         var keyBytes = Encoding.UTF8.GetBytes(_key);
 
-        if (!UseFileAsInput)
-        {
-            if (_encryptedText.Length % 2 == 1)
-            {
-                MessageBox.Show("Invalid encrypted data length");
-                return;
-            }
-
-            _encryptedTextBuffer = new byte[_encryptedText.Length >> 1];
-            for (var i = 0; i < _encryptedText.Length >> 1; ++i)
-            {
-                _encryptedTextBuffer[i] = (byte)((GetHexVal(_encryptedText[i << 1]) << 4) +
-                                                 (GetHexVal(_encryptedText[(i << 1) + 1])));
-            }
-        }
-
+        var watch = new Stopwatch();
+        watch.Start();
+        
         try
         {
-            var result = encryptionFunc(_encryptedTextBuffer, keyBytes);
-            _plainTextBuffer = result;
-            PlainText = Encoding.UTF8.GetString(result);
+            if (_encryptedTextFileName is not null && UseFileAsInput)
+            {
+                var aes = new Aes(keyBytes);
+                _plainTextBuffer = aes.Decrypt(_encryptedTextFileName);
+                PlainText = Encoding.UTF8.GetString(_plainTextBuffer);
+                _encryptedTextFileName = null;
+                UseFileAsInput = false;
+            }
+            else
+            {
+                if (_encryptedText.Length % 2 == 1)
+                {
+                    MessageBox.Show("Invalid encrypted data length");
+                    return;
+                }
+
+                _encryptedTextBuffer = new byte[_encryptedText.Length >> 1];
+                for (var i = 0; i < _encryptedText.Length >> 1; ++i)
+                {
+                    _encryptedTextBuffer[i] = (byte)((GetHexVal(_encryptedText[i << 1]) << 4) +
+                                                     (GetHexVal(_encryptedText[(i << 1) + 1])));
+                }
+                
+                var result = encryptionFunc(_encryptedTextBuffer, keyBytes);
+                _plainTextBuffer = result;
+                PlainText = Encoding.UTF8.GetString(result);
+            }
+            
+            
+            watch.Stop();
+            ElapsedTime = $"Finished in: {watch.ElapsedMilliseconds}ms";
         }
         catch (InvalidKeyLenghtException e)
         {
