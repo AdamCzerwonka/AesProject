@@ -2,6 +2,9 @@
 
 namespace AesProject.Core;
 
+/// <summary>
+/// This class represents aes block
+/// </summary>
 public class AesBlock
 {
     private readonly byte[,] _stateArray = new byte[4, 4];
@@ -10,6 +13,12 @@ public class AesBlock
     private int _roundsNumber;
     private readonly byte[,] _buffer = new byte[4, 4];
 
+    /// <summary>
+    /// Creates block instance based on key schedule and input
+    /// </summary>
+    /// <param name="input">block data, must be 16 bytes long</param>
+    /// <param name="keySchedule">Key schedule for block</param>
+    /// <exception cref="InvalidBlockSizeException">Thrown when data lenght is invalid</exception>
     public AesBlock(byte[] input, AesKeySchedule keySchedule)
     {
         if (input.Length != 16)
@@ -22,12 +31,22 @@ public class AesBlock
         ConvertToStateArray(input, _stateArray);
     }
 
+    /// <summary>
+    /// Creates block based only on key schedule
+    /// </summary>
+    /// <param name="keySchedule">Key schedule for block</param>
     public AesBlock(AesKeySchedule keySchedule)
     {
         _aesKeySchedule = keySchedule;
         _roundsNumber = _aesKeySchedule.EncryptionRounds;
     }
     
+    /// <summary>
+    /// Decrypts cyphered data and puts in output buffer
+    /// </summary>
+    /// <param name="input">input buffer with data for encryption</param>
+    /// <param name="output">output buffer for result to be place in</param>
+    /// <exception cref="InvalidBlockSizeException">Thrown when data lenght is not 16 bytes</exception>
     public void Decrypt(byte[] input, byte[] output)
     {
         if (input.Length != 16)
@@ -40,13 +59,18 @@ public class AesBlock
         Decrypt(output);
     }
 
+    /// <summary>
+    /// Decrypts cyphered passed in class constructor data and puts in output buffer
+    /// </summary>
+    /// <param name="output">output buffer for result to be place in</param>
+    /// <exception cref="InvalidBlockSizeException">Thrown when data lenght is not 16 bytes</exception>
     public void Decrypt(byte[] output)
     {
         AddRoundKey(_aesKeySchedule.GetKey(_roundsNumber));
         for (var i = _roundsNumber - 1; i > 0; i--)
         {
-            InvSubBytes();
             InvShiftRows();
+            InvSubBytes();
             AddRoundKey(_aesKeySchedule.GetKey(i));
             InvMixColumns();
         }
@@ -58,6 +82,12 @@ public class AesBlock
         FlattenStateArray(output);
     }
 
+    /// <summary>
+    /// Encrypts data given data and puts it into output buffer  
+    /// </summary>
+    /// <param name="input">Input buffer</param>
+    /// <param name="output">Output buffer</param>
+    /// <exception cref="InvalidBlockSizeException">Thrown when data lenght is not 16 bytes</exception>
     public void Encrypt(byte[] input, byte[] output)
     {
         if (input.Length != 16)
@@ -70,6 +100,11 @@ public class AesBlock
         Encrypt(output);
     }
 
+    /// <summary>
+    /// Encrypts data given data and puts it into output buffer  
+    /// </summary>
+    /// <param name="output">Output buffer</param>
+    /// <exception cref="InvalidBlockSizeException">Thrown when data lenght is not 16 bytes</exception>
     public void Encrypt(byte[] output)
     {
         AddRoundKey(_aesKeySchedule.GetKey(0));

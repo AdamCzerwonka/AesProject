@@ -2,10 +2,18 @@
 
 namespace AesProject.Core;
 
+/// <summary>
+/// This class expands aes encryption key
+/// </summary>
 public class AesKeySchedule
 {
     private readonly byte[] _encryptionKey;
 
+    /// <summary>
+    /// Creates expanded key based on passed encryption key
+    /// </summary>
+    /// <param name="key">key bytes</param>
+    /// <exception cref="InvalidKeyLenghtException">Throw when key lenght is not correct</exception>
     public AesKeySchedule(byte[] key)
     {
         if (key.Length is not (16 or 24 or 32))
@@ -25,6 +33,10 @@ public class AesKeySchedule
     }
 
 
+    /// <summary>
+    /// Returns number of rounds based on provided key
+    /// </summary>
+    /// <exception cref="InvalidKeyLenghtException">Thrown when key length is invalid</exception>
     public int EncryptionRounds
         => _encryptionKey.Length switch
         {
@@ -36,6 +48,11 @@ public class AesKeySchedule
 
     private readonly Dictionary<int, byte[]> _keys = new();
 
+    /// <summary>
+    /// Returns key for given round number
+    /// </summary>
+    /// <param name="roundNumber">round number</param>
+    /// <returns></returns>
     public byte[] GetKey(int roundNumber)
         => _keys[roundNumber];
 
