@@ -1,4 +1,24 @@
-﻿using System;
+﻿#region copy
+
+// Aes implementation in C#
+// Copyright (C) 2023 Adam Czerwonka, Marcel Badek
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#endregion
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
@@ -147,7 +167,7 @@ public class MainViewModel : NotifyPropertyChanged
         {
             return;
         }
-        
+
         _encryptedTextFileName = openFileDialog.FileName;
         UseFileAsInput = true;
         EncryptedText = "File loaded";
@@ -279,7 +299,7 @@ public class MainViewModel : NotifyPropertyChanged
 
         var watch = new Stopwatch();
         watch.Start();
-        
+
         try
         {
             if (_encryptedTextFileName is not null && UseFileAsInput)
@@ -304,13 +324,13 @@ public class MainViewModel : NotifyPropertyChanged
                     _encryptedTextBuffer[i] = (byte)((GetHexVal(_encryptedText[i << 1]) << 4) +
                                                      (GetHexVal(_encryptedText[(i << 1) + 1])));
                 }
-                
+
                 var result = encryptionFunc(_encryptedTextBuffer, keyBytes);
                 _plainTextBuffer = result;
                 PlainText = Encoding.UTF8.GetString(result);
             }
-            
-            
+
+
             watch.Stop();
             ElapsedTime = $"Finished in: {watch.ElapsedMilliseconds}ms";
         }
@@ -323,11 +343,6 @@ public class MainViewModel : NotifyPropertyChanged
     private int GetHexVal(char hex)
     {
         int val = hex;
-        //For uppercase A-F letters:
-        //return val - (val < 58 ? 48 : 55);
-        //For lowercase a-f letters:
-        //return val - (val < 58 ? 48 : 87);
-        //Or the two combined, but a bit slower:
         return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
     }
 
